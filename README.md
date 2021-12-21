@@ -20,7 +20,7 @@ https://github.com/influxdata/influxdb-client-java
 
 ## Import sample data
 
-The following flux script will insert the sample 
+The following flux script will insert some sample data (more details here https://docs.influxdata.com/influxdb/v2.1/reference/sample-data/#noaa-sample-data) 
 
 import "influxdata/influxdb/sample"
 

@@ -11,6 +11,7 @@ docker exec -it influxdb2 bash
 influx setup --username dbschema --password dbschema --org dbschema --bucket sample
 
 // THIS WILL LIST THE TOKEN REQUIRED TO LOGIN
+
 influx auth list --user dbschema --hide-headers | cut -f 3
 
 

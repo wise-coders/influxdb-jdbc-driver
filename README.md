@@ -36,3 +36,18 @@ sample.data(set: "noaa")
 
 
 
+# InfluxDB key concepts
+Before working with InfluxDB it’s helpful to learn a few key concepts. Browse the topics below to learn more.
+
+## InfluxDB data elements
+InfluxDB structures data using elements such as timestamps, field keys, field values, tags, etc.
+https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-elements/
+
+## InfluxDB data schema
+InfluxDB uses a tabular data schema for displaying raw data in Data Explorer and for returning query results in annotated CSV syntax.
+https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-schema/
+
+## InfluxDB design principles
+Principles and tradeoffs related to InfluxDB design.
+https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/design-principles/
+

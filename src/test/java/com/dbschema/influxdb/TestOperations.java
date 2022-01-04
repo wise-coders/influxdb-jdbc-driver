@@ -2,28 +2,36 @@ package com.dbschema.influxdb;
 
 import com.influxdb.annotations.Column;
 import com.influxdb.annotations.Measurement;
-import com.influxdb.client.InfluxDBClient;
-import com.influxdb.client.InfluxDBClientFactory;
-import com.influxdb.client.QueryApi;
-import com.influxdb.client.WriteApiBlocking;
+import com.influxdb.client.*;
+import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.SQLException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 public class TestOperations {
 
-    private static char[] token = "Qzbb07b2GVs83F1jDs6ayP3hi37qyj8hufY6tWeUz9pt9nyGbXA-dpp68Rlbl7WxQLR9qMFpkqB1TGpBie49iA==".toCharArray();
+    //private static char[] token = "Qzbb07b2GVs83F1jDs6ayP3hi37qyj8hufY6tWeUz9pt9nyGbXA-dpp68Rlbl7WxQLR9qMFpkqB1TGpBie49iA==".toCharArray();
+
+    //This is Ivan's Token
+    private static char[] token = "5CbH7vMJ-tx6p68E4egEcKDLMCE0Nd64AYpS2J5zzDc68ddOQD0Thq4gXPUIUut__rVuo37-6MHRUZ3_4GwkHw==".toCharArray();
     private static String org = "dbschema";
     private static String bucket = "sample";
 
     private InfluxDBClient influxDBClient;
 
+
+    @After
+    public void closeConnection() throws SQLException {
+        influxDBClient.close();
+    }
     @Before
     public void testDriver() throws SQLException {
 
@@ -75,6 +83,101 @@ public class TestOperations {
 
         influxDBClient.close();
     }
+
+    @Test
+    /*
+    This Test function gets the buckets for the given organisation
+    Buckets are Analogous to schemas within an traditional RDBMS
+    The org is similar in to a database in that its a group of Buckets
+
+     */
+    public void getBuckets() throws SQLException {
+
+
+        BucketsApi bucketApi = influxDBClient.getBucketsApi();
+
+
+
+
+        List<Bucket> buckets = bucketApi.findBucketsByOrgName(org);
+        for (Bucket fluxTable : buckets) {
+            System.out.printf("Bucket " + fluxTable.toString());
+        }
+
+        influxDBClient.close();
+
+
+
+    }
+    @Test
+    /*
+    This Test function gets the measurements and its columns for the sample bucket
+
+     */
+    public void getMeasurementAndFieldNames() throws SQLException {
+
+        List<String> Measurements = getMeasurements("sample");
+
+        for (String measurement : Measurements) {
+
+            System.out.println("In the measurement " + measurement);
+            System.out.println("There are the following column names" );
+            List<String> colNames = getColumnNames("sample", measurement);
+            for (String fluxRecord : colNames) {
+                System.out.println(fluxRecord);
+            }
+
+
+        }
+    }
+    public List<String>  getMeasurements(String bucket) throws SQLException {
+        String flux = "import \"influxdata/influxdb/schema\"\n" +
+                "\n" +
+                "schema.measurements(bucket: \"" + bucket + "\")";
+
+        QueryApi queryApi = influxDBClient.getQueryApi();
+        List<String> values = new ArrayList<String>();
+        List<FluxTable> tables = queryApi.query(flux);
+        for (FluxTable fluxTable : tables) {
+
+            List<FluxRecord> records = fluxTable.getRecords();
+            for (FluxRecord fluxRecord : records) {
+                //this Flux query gets the fields used in the measurement
+                //and then puts them in this value column
+
+                values.add(fluxRecord.getValueByKey("_value").toString());
+            }
+        }
+
+     //   influxDBClient.close();
+        return values;
+    }
+
+    public List<String> getColumnNames(String bucket, String measurement ) throws SQLException {
+        String flux = "import \"influxdata/influxdb/schema\"\n" +
+                "\n" +
+                "schema.measurementFieldKeys(bucket: \"" + bucket + "\", measurement: \"" + measurement + "\")";
+
+        QueryApi queryApi = influxDBClient.getQueryApi();
+
+        List<String> values = new ArrayList<String>();
+
+        List<FluxTable> tables = queryApi.query(flux);
+        for (FluxTable fluxTable : tables) {
+
+            List<FluxRecord> records = fluxTable.getRecords();
+            for (FluxRecord fluxRecord : records) {
+                //this Flux query gets the fields used in the measurement
+                //and then puts them in this value column
+                values.add(fluxRecord.getValueByKey("_value").toString());
+            }
+        }
+
+      //  influxDBClient.close();
+        return values;
+    }
+
+
 
     @Measurement(name = "temperature")
     private static class Temperature {

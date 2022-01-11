@@ -54,8 +54,12 @@ Instant yesterday = today.minus(Period.ofDays(1));
 Instant daybefore = yesterday.minus(Period.ofDays(1));
 
 List<Point> pointsToAdd = new ArrayList<>();
-pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Peter").addTag("lastName", "Johnson").addField("value", 52D).time(daybefore, WritePrecision.S));
-pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("value", 22D).time(daybefore, WritePrecision.S));
+pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Peter").addTag("lastName", "Smithson").addField("bill", 52.00).time(daybefore, WritePrecision.S));
+pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("bill", 22.45).time(daybefore, WritePrecision.S));
+pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Peter").addTag("lastName", "Johnson").addField("bill", 57.67).time(yesterday, WritePrecision.S));
+pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("bill", 34.22).time(yesterday, WritePrecision.S));
+pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Jayne").addTag("lastName", "Johnson").addField("bill", 51.34).time(today, WritePrecision.S));
+pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("bill", 22.12).time(today, WritePrecision.S));
 
 writeApi.writePoints(pointsToAdd);
 
@@ -64,8 +68,12 @@ If you were to think of this data in a normal RDBMS it would come in a table lik
 
 | Date | FirstName | LastName | bill |
 |---|---|---|---|
-| 9 Jan 2022 | Peter | Johnson | 52 |
-| 9 Jan 2022 | Bill | Coulam | 22 |
+| 9 Jan 2022 | Peter | Smithson | 52.00 |
+| 9 Jan 2022 | Bill | Coulam | 22.45 |
+| 10 Jan 2022 | Peter | Johnson | 57.67 |
+| 10 Jan 2022 | Bill | Coulam | 34.22 |
+| 11 Jan 2022 | Jayne | Johnson | 51.34 |
+| 11 Jan 2022 | Bill | Coulam | 22.12 |
 
 However Influx stores its data as a point in time with associated tags (2 of those tags being field name and measurement). 
   
@@ -87,5 +95,3 @@ You should be very careful with the combination of tags, ensure they are limited
 
 If you have come from a RDBMS background the simpilist way to imaging the difference between fields and tags is to see the field as a column and a tag as a column that is indexed. You can learn more about querying [by fields and tags](https://docs.influxdata.com/influxdb/cloud/query-data/flux/query-fields/#filter-by-fields-and-tags)
   
-
-??? 

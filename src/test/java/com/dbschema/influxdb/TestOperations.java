@@ -5,6 +5,7 @@ import com.influxdb.annotations.Measurement;
 import com.influxdb.client.*;
 import com.influxdb.client.domain.Bucket;
 import com.influxdb.client.domain.WritePrecision;
+import com.influxdb.client.write.Point;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import org.junit.After;
@@ -13,6 +14,7 @@ import org.junit.Test;
 
 import java.sql.SQLException;
 import java.time.Instant;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,11 +39,34 @@ public class TestOperations {
 
         this.influxDBClient = InfluxDBClientFactory.create("http://localhost:8086", token, org, bucket);
 
+    }
+
+
+        @Test
+        public void writeTemperature() throws SQLException {
+
         WriteApiBlocking writeApi = influxDBClient.getWriteApiBlocking();
 
-        writeApi.writeRecord(WritePrecision.NS, "persons,firstname=Mihai value=10.0");
-        writeApi.writeRecord(WritePrecision.NS, "persons,firstname=Dan value=10.0");
+        //writeApi.writeRecord(WritePrecision.NS, "persons,firstname=Mihai value=10.0");
+        //writeApi.writeRecord(WritePrecision.NS, "persons,firstname=Dan value=10.0");
 
+
+        Instant today = Instant.now();
+        Instant yesterday = today.minus(Period.ofDays(1));
+        Instant daybefore = yesterday.minus(Period.ofDays(1));
+
+        List<Point> pointsToAdd = new ArrayList<>();
+        pointsToAdd.add(Point.measurement("temperature").addTag("location", "west").addField("value", 52D).time(daybefore, WritePrecision.S));
+        pointsToAdd.add(Point.measurement("temperature").addTag("location", "north").addField("value", 60D).time(daybefore, WritePrecision.S));
+        pointsToAdd.add(Point.measurement("temperature").addTag("location", "south").addField("value", 62D).time(daybefore, WritePrecision.S));
+        pointsToAdd.add(Point.measurement("temperature").addTag("location", "west").addField("value", 55D).time(yesterday, WritePrecision.S));
+        pointsToAdd.add(Point.measurement("temperature").addTag("location", "north").addField("value", 61D).time(yesterday, WritePrecision.S));
+        pointsToAdd.add(Point.measurement("temperature").addTag("location", "south").addField("value", 66D).time(yesterday, WritePrecision.S));
+        pointsToAdd.add(Point.measurement("temperature").addTag("location", "west").addField("value", 56D).time(today, WritePrecision.S));
+        pointsToAdd.add(Point.measurement("temperature").addTag("location", "north").addField("value", 67D).time(today, WritePrecision.S));
+        pointsToAdd.add(Point.measurement("temperature").addTag("location", "south").addField("value", 63D).time(today, WritePrecision.S));
+
+        writeApi.writePoints(pointsToAdd);
         /*
         // Write by Data Point
         Point point = Point.measurement("temperature")

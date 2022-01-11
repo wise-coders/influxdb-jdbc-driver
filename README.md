@@ -48,6 +48,7 @@ This is how the script will look in the UI:
 Influx is a timeseries database, so if you are going to store information it would have to be the stats over a period of time. 
 So we will consider as example a 'clients' measurement (table), where we save the clients of a shop, and the bill value.
 
+```java
 
 Instant today = Instant.now();
 Instant yesterday = today.minus(Period.ofDays(1));
@@ -62,6 +63,7 @@ pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Jayne").addTag
 pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("bill", 22.12).time(today, WritePrecision.S));
 
 writeApi.writePoints(pointsToAdd);
+```
 
 If you were to think of this data in a normal RDBMS it would come in a table like this:
 

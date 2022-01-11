@@ -37,7 +37,9 @@ This is how the script will look in the UI:
 
 # Documentation
 [Data Elements](https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-elements/)
+
 [Data Schema](https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-schema/)
+
 [Design](https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/design-principles/)
 
 
@@ -60,16 +62,18 @@ writeApi.writePoints(pointsToAdd);
 If you were to think of this data in a normal RDBMS it would come in a table like this:
 
 
-| Date | FirstName | LastName | Value |
+| Date | FirstName | LastName | bill |
 |---|---|---|---|
 | 9 Jan 2022 | Peter | Johnson | 52 |
-| 9 Jan 2022 | Bill | Coulam | 52 |
+| 9 Jan 2022 | Bill | Coulam | 22 |
 
-However Influx stores its data as a point in time with associated tags (2 of those tags being field name and measurement). So the data actually comes out like this:
+However Influx stores its data as a point in time with associated tags (2 of those tags being field name and measurement). 
+  
+So the data actually comes out like this:
 
 ### Foreign keys
 
-Influx doesn’t really support this concept.
+Influx doesn’t really support this concept. Although you can join tables based on tags, if you are doing this its usually very ineffcient and you should consider your schema design 
 
 
 ### Indexes
@@ -78,6 +82,10 @@ Searching data by tags is fast
 
 This is because of the tag “location” the flux language splits the data into tables on each change of the combination of tags
 
-??? Does this mean that the combination of tags has to be as much as possible limited?
-??? Which is the difference between fields and tags?
+You should be very careful with the combination of tags, ensure they are limited to avoid high cardinality:
+[avoid high cardinality](https://docs.influxdata.com/influxdb/cloud/write-data/best-practices/resolve-high-cardinality/)
+
+If you have come from a RDBMS background the simpilist way to imaging the difference between fields and tags is to see the field as a column and a tag as a column that is indexed. You can learn more about querying [by fields and tags](https://docs.influxdata.com/influxdb/cloud/query-data/flux/query-fields/#filter-by-fields-and-tags)
+  
+
 ??? 

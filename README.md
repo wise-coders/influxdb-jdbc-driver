@@ -87,6 +87,7 @@ You will notice that all the the data is presented as a table, the interesting p
 ![image](https://user-images.githubusercontent.com/7541023/148956096-7a64b5ea-a470-4e16-9794-db0707da8354.png)
 If you see the two columns highlighted in red you notice that instead of a bill being displayed as a single column, its actually seen as two columns _field and _value 
 
+You can also see in purple the tags “firstName” and “lastName” flux language splits the data into tables (see column 1) on each change of the combination of tags
 
 ### Foreign keys
 
@@ -97,7 +98,7 @@ Influx doesn’t really support this concept. Although you can join tables based
 
 Searching data by tags is fast
 
-This is because of the tags “firstName” and “lastName” flux language splits the data into tables on each change of the combination of tags
+
 
 You should be very careful with the combination of tags, ensure they are limited to avoid high cardinality:
 [avoid high cardinality](https://docs.influxdata.com/influxdb/cloud/write-data/best-practices/resolve-high-cardinality/)

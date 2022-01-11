@@ -80,6 +80,13 @@ If you were to think of this data in a normal RDBMS it would come in a table lik
 However Influx stores its data as a point in time with associated tags (2 of those tags being field name and measurement). 
   
 So the data actually comes out like this:
+![image](https://user-images.githubusercontent.com/7541023/148955797-b476850a-8fd9-42f1-8ae7-b1f40380686c.png)
+
+You will notice that all the the data is presented as a table, the interesting point to note is that its not a table in the traditional sense with columns and rows, its more a list of meta data around a single field: 
+
+![image](https://user-images.githubusercontent.com/7541023/148956096-7a64b5ea-a470-4e16-9794-db0707da8354.png)
+If you see the two columns highlighted in red you notice that instead of a bill being displayed as a single column, its actually seen as two columns _field and _value 
+
 
 ### Foreign keys
 
@@ -90,7 +97,7 @@ Influx doesn’t really support this concept. Although you can join tables based
 
 Searching data by tags is fast
 
-This is because of the tag “location” the flux language splits the data into tables on each change of the combination of tags
+This is because of the tags “firstName” and “lastName” flux language splits the data into tables on each change of the combination of tags
 
 You should be very careful with the combination of tags, ensure they are limited to avoid high cardinality:
 [avoid high cardinality](https://docs.influxdata.com/influxdb/cloud/write-data/best-practices/resolve-high-cardinality/)

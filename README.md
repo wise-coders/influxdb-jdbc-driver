@@ -1,27 +1,25 @@
-# influxdb-jdbc-driver
+# Influx JDBC Driver
 
-I tested it against docker using
+## Setup Test Environment
+Run in docker
 
+```
 docker pull influxdb
-
 docker run -d -p 8086:8086 --name influxdb2 -v /C/Temp:/var/lib/influxdb2 influxdb:latest
-
 docker exec -it influxdb2 bash
-
 influx setup --username dbschema --password dbschema --org dbschema --bucket sample
-
 // THIS WILL LIST THE TOKEN REQUIRED TO LOGIN with the client tools
-
 influx auth list --user dbschema --hide-headers | cut -f 3
-
+```
 
 https://github.com/influxdata/influxdb-client-java
 
 
 ## Import sample data
 
-The following flux script will insert some sample data (more details here https://docs.influxdata.com/influxdb/v2.1/reference/sample-data/#noaa-sample-data) 
+The following flux script will insert some sample data more details (here)[https://docs.influxdata.com/influxdb/v2.1/reference/sample-data/#noaa-sample-data]
 
+```
 import "influxdata/influxdb/sample"
 
 sample.data(set: "noaa")
@@ -29,25 +27,57 @@ sample.data(set: "noaa")
       org: "dbschema",
       bucket: "sample"
   )
+```
+
+This is how the script will look in the UI:
   
-  This is how the script will look in the UI:
-  
-  ![image](https://user-images.githubusercontent.com/7541023/146947692-f5a709f0-8ecf-41e4-98b1-b3d4aab9a8c3.png)
+![image](https://user-images.githubusercontent.com/7541023/146947692-f5a709f0-8ecf-41e4-98b1-b3d4aab9a8c3.png)
 
 
 
-# InfluxDB key concepts
-Before working with InfluxDB it’s helpful to learn a few key concepts. Browse the topics below to learn more.
+# Documentation
+[Data Elements](https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-elements/)
+[Data Schema](https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-schema/)
+[Design](https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/design-principles/)
 
-## InfluxDB data elements
-InfluxDB structures data using elements such as timestamps, field keys, field values, tags, etc.
-https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-elements/
 
-## InfluxDB data schema
-InfluxDB uses a tabular data schema for displaying raw data in Data Explorer and for returning query results in annotated CSV syntax.
-https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-schema/
+## Influx is a Timeseries Database
 
-## InfluxDB design principles
-Principles and tradeoffs related to InfluxDB design.
-https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/design-principles/
+Influx is a timeseries database, so if you are going to store information it would have to be the stats over a period of time. 
+So we will consider as example a 'clients' measurement (table), where we save the clients of a shop, and the bill value.
 
+
+Instant today = Instant.now();
+Instant yesterday = today.minus(Period.ofDays(1));
+Instant daybefore = yesterday.minus(Period.ofDays(1));
+
+List<Point> pointsToAdd = new ArrayList<>();
+pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Peter").addTag("lastName", "Johnson").addField("value", 52D).time(daybefore, WritePrecision.S));
+pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("value", 22D).time(daybefore, WritePrecision.S));
+
+writeApi.writePoints(pointsToAdd);
+
+If you were to think of this data in a normal RDBMS it would come in a table like this:
+
+
+| Date | FirstName | LastName | Value |
+|---|---|---|---|
+| 9 Jan 2022 | Peter | Johnson | 52 |
+| 9 Jan 2022 | Bill | Coulam | 52 |
+
+However Influx stores its data as a point in time with associated tags (2 of those tags being field name and measurement). So the data actually comes out like this:
+
+### Foreign keys
+
+Influx doesn’t really support this concept.
+
+
+### Indexes
+
+Searching data by tags is fast
+
+This is because of the tag “location” the flux language splits the data into tables on each change of the combination of tags
+
+??? Does this mean that the combination of tags has to be as much as possible limited?
+??? Which is the difference between fields and tags?
+??? 

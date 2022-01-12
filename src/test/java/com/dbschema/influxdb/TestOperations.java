@@ -29,23 +29,21 @@ public class TestOperations {
         influxDBClient.close();
     }
     @Before
-    public void testDriver() throws IOException {
+    public void prepareData() throws IOException {
 
 
         prop.load( new FileInputStream("gradle.properties"));
 
         this.influxDBClient = InfluxDBClientFactory.create("http://localhost:8086", prop.getProperty("token").toCharArray(), prop.getProperty("org"), prop.getProperty("bucket"));
 
-    }
-
-    @Test
-    public void writeTransactions() throws SQLException {
-
         WriteApiBlocking writeApi = influxDBClient.getWriteApiBlocking();
         // where we save the clients of a shop, and the bill value.
         Instant today = Instant.now();
         Instant yesterday = today.minus(Period.ofDays(1));
         Instant daybefore = yesterday.minus(Period.ofDays(1));
+
+        try { influxDBClient.getBucketsApi().deleteBucket("clients"); } catch ( Throwable ex ){}
+
 
         List<Point> pointsToAdd = new ArrayList<>();
         pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Peter").addTag("lastName", "Smithson").addField("bill", 52.00).time(daybefore, WritePrecision.S));
@@ -56,51 +54,38 @@ public class TestOperations {
         pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("bill", 22.12).time(today, WritePrecision.S));
         writeApi.writePoints(pointsToAdd);
 
+
+        List<Point> pointsToAdd2 = new ArrayList<>();
+        pointsToAdd2.add(Point.measurement("temperature").addTag("location", "west").addField("value", 52D).time(daybefore, WritePrecision.S));
+        pointsToAdd2.add(Point.measurement("temperature").addTag("location", "north").addField("value", 60D).time(daybefore, WritePrecision.S));
+        pointsToAdd2.add(Point.measurement("temperature").addTag("location", "south").addField("value", 62D).time(daybefore, WritePrecision.S));
+        pointsToAdd2.add(Point.measurement("temperature").addTag("location", "west").addField("value", 55D).time(yesterday, WritePrecision.S));
+        pointsToAdd2.add(Point.measurement("temperature").addTag("location", "north").addField("value", 61D).time(yesterday, WritePrecision.S));
+        pointsToAdd2.add(Point.measurement("temperature").addTag("location", "south").addField("value", 66D).time(yesterday, WritePrecision.S));
+        pointsToAdd2.add(Point.measurement("temperature").addTag("location", "west").addField("value", 56D).time(today, WritePrecision.S));
+        pointsToAdd2.add(Point.measurement("temperature").addTag("location", "north").addField("value", 67D).time(today, WritePrecision.S));
+        pointsToAdd2.add(Point.measurement("temperature").addTag("location", "south").addField("value", 63D).time(today, WritePrecision.S));
+
+        writeApi.writePoints(pointsToAdd2);
+
     }
-        @Test
-        public void writeTemperature() throws SQLException {
-
-            WriteApiBlocking writeApi = influxDBClient.getWriteApiBlocking();
-
-            //writeApi.writeRecord(WritePrecision.NS, "persons,firstname=Mihai value=10.0");
-            //writeApi.writeRecord(WritePrecision.NS, "persons,firstname=Dan value=10.0");
-
-
-            Instant today = Instant.now();
-            Instant yesterday = today.minus(Period.ofDays(1));
-            Instant daybefore = yesterday.minus(Period.ofDays(1));
-
-            List<Point> pointsToAdd = new ArrayList<>();
-            pointsToAdd.add(Point.measurement("temperature").addTag("location", "west").addField("value", 52D).time(daybefore, WritePrecision.S));
-            pointsToAdd.add(Point.measurement("temperature").addTag("location", "north").addField("value", 60D).time(daybefore, WritePrecision.S));
-            pointsToAdd.add(Point.measurement("temperature").addTag("location", "south").addField("value", 62D).time(daybefore, WritePrecision.S));
-            pointsToAdd.add(Point.measurement("temperature").addTag("location", "west").addField("value", 55D).time(yesterday, WritePrecision.S));
-            pointsToAdd.add(Point.measurement("temperature").addTag("location", "north").addField("value", 61D).time(yesterday, WritePrecision.S));
-            pointsToAdd.add(Point.measurement("temperature").addTag("location", "south").addField("value", 66D).time(yesterday, WritePrecision.S));
-            pointsToAdd.add(Point.measurement("temperature").addTag("location", "west").addField("value", 56D).time(today, WritePrecision.S));
-            pointsToAdd.add(Point.measurement("temperature").addTag("location", "north").addField("value", 67D).time(today, WritePrecision.S));
-            pointsToAdd.add(Point.measurement("temperature").addTag("location", "south").addField("value", 63D).time(today, WritePrecision.S));
-
-            writeApi.writePoints(pointsToAdd);
-
-        }
-        /*
-    This Test function gets the buckets for the given organisation
-    Buckets are Analogous to schemas within an traditional RDBMS
-    Org is similar in to a database in that its a group of Buckets
+    /**
+        This Test function gets the buckets for the given organisation
+        Buckets are Analogous to schemas within an traditional RDBMS.
+        Org is similar in to a database in that its a group of Buckets
      */
     @Test
     public void listBuckets() throws SQLException {
         BucketsApi bucketApi = influxDBClient.getBucketsApi();
         List<Bucket> buckets = bucketApi.findBucketsByOrgName(prop.getProperty("org"));
-        for (Bucket fluxTable : buckets) {
-            System.out.printf("Bucket " + fluxTable.toString());
+        for (Bucket bucket : buckets) {
+            System.out.printf("Bucket " + bucket.toString());
         }
         influxDBClient.close();
     }
 
-    /*
-    List measurements (similar with tables) and its columns
+    /**
+        List measurements (similar with tables) and its columns
      */
     @Test
     public void listMeasurementAndFieldNames() throws SQLException {
@@ -125,7 +110,7 @@ public class TestOperations {
                     for (FluxRecord fluxRecord2 : fluxTable2.getRecords()) {
                         String column = String.valueOf( fluxRecord2.getValueByKey("_value") );
                         System.out.println("  Column " + column );
-    }
+                    }
                 }
             }
         }
@@ -212,4 +197,4 @@ public class TestOperations {
     }
 */
 
-    }
+}

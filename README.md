@@ -31,7 +31,7 @@ sample.data(set: "noaa")
 
 This is how the script will look in the UI:
   
-![image](https://user-images.githubusercontent.com/7541023/146947692-f5a709f0-8ecf-41e4-98b1-b3d4aab9a8c3.png)
+![image](./resources/images/1.png)
 
 
 
@@ -80,11 +80,11 @@ If you were to think of this data in a normal RDBMS it would come in a table lik
 However Influx stores its data as a point in time with associated tags (2 of those tags being field name and measurement). 
   
 So the data actually comes out like this:
-![image](https://user-images.githubusercontent.com/7541023/148955797-b476850a-8fd9-42f1-8ae7-b1f40380686c.png)
+![image](./resources/images/2.png)
 
 You will notice that all the the data is presented as a table, the interesting point to note is that its not a table in the traditional sense with columns and rows, its more a list of meta data around a single field: 
 
-![image](https://user-images.githubusercontent.com/7541023/148956096-7a64b5ea-a470-4e16-9794-db0707da8354.png)
+![image](./resources/images/3.png)
 If you see the two columns highlighted in red you notice that instead of a bill being displayed as a single column, its actually seen as two columns _field and _value 
 
 You can also see in purple the tags “firstName” and “lastName” flux language splits the data into tables (see column 1) on each change of the combination of tags

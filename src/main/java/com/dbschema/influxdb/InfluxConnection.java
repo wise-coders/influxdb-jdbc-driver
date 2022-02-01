@@ -1,6 +1,6 @@
 package com.dbschema.influxdb;
 
-import com.influxdb.client.flux.FluxClient;
+import com.influxdb.client.InfluxDBClient;
 
 import java.sql.*;
 import java.util.Map;
@@ -9,15 +9,15 @@ import java.util.concurrent.Executor;
 
 public class InfluxConnection implements Connection {
 
-    protected final FluxClient fluxClient;
+    protected final InfluxDBClient client;
 
-    public InfluxConnection( FluxClient fluxClient){
-        this.fluxClient = fluxClient;
+    public InfluxConnection(InfluxDBClient client ){
+        this.client = client;
     }
 
     @Override
     public Statement createStatement() throws SQLException {
-        return null;
+        return new InfluxPreparedStatement( this, "");
     }
 
     @Override

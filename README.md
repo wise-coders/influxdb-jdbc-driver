@@ -5,8 +5,8 @@ Run in docker
 
 ```
 docker pull influxdb
-docker run -d -p 8086:8086 --name influxdb2 -v /C/Temp:/var/lib/influxdb2 influxdb:latest
-docker exec -it influxdb2 bash
+docker run -d -p 8086:8086 --name influxdb -v /C/Temp:/var/lib/influxdb2 influxdb:latest
+docker exec -it influxdb bash
 influx setup --username dbschema --password dbschema --org dbschema --bucket sample
 // THIS WILL LIST THE TOKEN REQUIRED TO LOGIN with the client tools
 influx auth list --user dbschema --hide-headers | cut -f 3
@@ -103,5 +103,5 @@ Searching data by tags is fast
 You should be very careful with the combination of tags, ensure they are limited to avoid high cardinality:
 [avoid high cardinality](https://docs.influxdata.com/influxdb/cloud/write-data/best-practices/resolve-high-cardinality/)
 
-If you have come from a RDBMS background the simpilist way to imaging the difference between fields and tags is to see the field as a column and a tag as a column that is indexed. You can learn more about querying [by fields and tags](https://docs.influxdata.com/influxdb/cloud/query-data/flux/query-fields/#filter-by-fields-and-tags)
+If you have come from a RDBMS background the simplest way to imaging the difference between fields and tags is to see the field as a column and a tag as a column that is indexed. You can learn more about querying [by fields and tags](https://docs.influxdata.com/influxdb/cloud/query-data/flux/query-fields/#filter-by-fields-and-tags)
   

@@ -1,7 +1,4 @@
-package com.dbschema.influxdb;
-
-import com.influxdb.query.FluxRecord;
-import com.influxdb.query.FluxTable;
+package com.dbschema.influxdb.resultSet;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -9,71 +6,53 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 
-public class InfluxResultSet implements ResultSet {
 
-    private int posTable = -1, posRecord = -1;
-    private final List<FluxTable> fluxTables;
-    private boolean done = false;
+public class ResultSetIterator implements ResultSet {
 
-    protected FluxTable fluxTable;
-    protected FluxRecord fluxRecord;
+    private final Iterator iterator;
+    protected Object actual;
 
-    public InfluxResultSet(List<FluxTable> fluxTables){
-        this.fluxTables = fluxTables;
+    public ResultSetIterator(){
+        this.iterator = null;
+    }
+
+    public ResultSetIterator(Iterable iterable){
+        iterator = (iterable != null ? iterable.iterator() : null);
+    }
+
+
+    public ResultSetIterator(Iterator iterator){
+        this.iterator = iterator;
+    }
+
+
+    @Override
+    public Object getObject(int columnIndex) throws SQLException {
+        return actual;
     }
 
     @Override
     public boolean next() throws SQLException {
-        if ( done ) {
-            return false;
+        actual = null;
+        if ( iterator != null ) {
+            if ( iterator.hasNext() ) {
+                actual = iterator.next();
+                return true;
+            }
         }
-        boolean loopTable;
-        do {
-            if (fluxTable == null) {
-                if (++posTable < fluxTables.size()) {
-                    fluxTable = fluxTables.get(posTable);
-                    posRecord = -1;
-                } else {
-                    done = true;
-                    return false;
-                }
-            }
-            if (++posRecord >= fluxTable.getRecords().size()) {
-                fluxTable = null;
-                posTable++;
-                loopTable = true;
-            } else {
-                loopTable = false;
-            }
-        } while ( loopTable );
-        fluxRecord = fluxTable.getRecords().get( posRecord );
-        return true;
+        return false;
     }
 
-    public FluxRecord getOneFluxRecord(){
-        if ( fluxRecord != null ) return fluxRecord;
-        FluxTable fluxTable = this.fluxTable;
-        if ( fluxTable == null ) {
-            fluxTable = fluxTables.get( 0 );
-        }
-        if ( fluxTable != null ){
-            return fluxTable.getRecords().get( 0 );
-        }
-        return null;
+    @Override
+    public void close() throws SQLException {
     }
 
     @Override
     public ResultSetMetaData getMetaData() throws SQLException {
-        return new InfluxResultSetMetaData( this );
-    }
-
-
-    @Override
-    public void close() throws SQLException {
-
+        return new ArrayResultSetMetaData("Result", new String[]{"map"}, new int[]{Types.JAVA_OBJECT}, new int[]{300});
     }
 
     @Override
@@ -83,7 +62,7 @@ public class InfluxResultSet implements ResultSet {
 
     @Override
     public String getString(int columnIndex) throws SQLException {
-        return "" + fluxRecord.getTime() + " " + fluxRecord.getValues();
+        return null;
     }
 
     @Override
@@ -256,10 +235,7 @@ public class InfluxResultSet implements ResultSet {
         return null;
     }
 
-    @Override
-    public Object getObject(int columnIndex) throws SQLException {
-        return null;
-    }
+
 
     @Override
     public Object getObject(String columnLabel) throws SQLException {

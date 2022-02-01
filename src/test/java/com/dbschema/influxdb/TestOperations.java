@@ -28,10 +28,9 @@ public class TestOperations {
     public void closeConnection() {
         influxDBClient.close();
     }
+
     @Before
     public void prepareData() throws IOException {
-
-
         prop.load( new FileInputStream("gradle.properties"));
 
         this.influxDBClient = InfluxDBClientFactory.create("http://localhost:8086", prop.getProperty("token").toCharArray(), prop.getProperty("org"), prop.getProperty("bucket"));
@@ -135,66 +134,5 @@ public class TestOperations {
         influxDBClient.close();
     }
 
-    /*
-    @Test
-    public void getMeasurementAndFieldNames() throws SQLException {
-
-        List<String> Measurements = getMeasurements("sample");
-
-        for (String measurement : Measurements) {
-
-            System.out.println("In the measurement " + measurement);
-            System.out.println("There are the following column names" );
-            List<String> colNames = getColumnNames("sample", measurement);
-            for (String fluxRecord : colNames) {
-                System.out.println(fluxRecord);
-            }
-
-
-        }
-    }
-    public List<String>  getMeasurements(String bucket) throws SQLException {
-        String flux = "import \"influxdata/influxdb/schema\"\n" +
-                "\n" +
-                "schema.measurements(bucket: \"" + bucket + "\")";
-
-        QueryApi queryApi = influxDBClient.getQueryApi();
-        List<String> values = new ArrayList<String>();
-        List<FluxTable> tables = queryApi.query(flux);
-        for (FluxTable fluxTable : tables) {
-
-            List<FluxRecord> records = fluxTable.getRecords();
-            for (FluxRecord fluxRecord : records) {
-                //this Flux query gets the fields used in the measurement
-                //and then puts them in this value column
-
-                values.add(fluxRecord.getValueByKey("_value").toString());
-            }
-        }
-        return values;
-    }
-
-    public List<String> getColumnNames(String bucket, String measurement ) throws SQLException {
-        String flux = "import \"influxdata/influxdb/schema\"\n" +
-                "\n" +
-                "schema.measurementFieldKeys(bucket: \"" + bucket + "\", measurement: \"" + measurement + "\")";
-
-        QueryApi queryApi = influxDBClient.getQueryApi();
-
-        List<String> values = new ArrayList<String>();
-
-        List<FluxTable> tables = queryApi.query(flux);
-        for (FluxTable fluxTable : tables) {
-
-            List<FluxRecord> records = fluxTable.getRecords();
-            for (FluxRecord fluxRecord : records) {
-                //this Flux query gets the fields used in the measurement
-                //and then puts them in this value column
-                values.add(fluxRecord.getValueByKey("_value").toString());
-            }
-        }
-        return values;
-    }
-*/
 
 }

@@ -1,7 +1,8 @@
 
 package com.dbschema.influxdb;
 
-import com.influxdb.client.flux.FluxClientFactory;
+import com.influxdb.client.InfluxDBClient;
+import com.influxdb.client.InfluxDBClientFactory;
 
 import java.sql.*;
 import java.util.Properties;
@@ -25,7 +26,7 @@ public class InfluxJdbcDriver implements Driver
             LOGGER.setLevel(Level.FINEST);
             LOGGER.addHandler(consoleHandler);
 
-            final FileHandler fileHandler = new FileHandler(System.getProperty("user.home") + "/.DbSchema/logs/MongoDbJdbcDriver.log");
+            final FileHandler fileHandler = new FileHandler(System.getProperty("user.home") + "/.DbSchema/logs/InfluxJdbcDriver.log");
             fileHandler.setFormatter( new SimpleFormatter());
             LOGGER.addHandler(fileHandler);
 
@@ -43,7 +44,18 @@ public class InfluxJdbcDriver implements Driver
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
         if ( url != null && acceptsURL( url )){
-            return new InfluxConnection( FluxClientFactory.create( url ));
+            String userName = ( info != null ? (String)info.get("user") : null );
+            String password = ( info != null ? (String)info.get("password") : null );
+
+            InfluxDBClient client;
+
+            if (userName == null || password == null) {
+                client = InfluxDBClientFactory.create( url );
+            } else {
+                client = InfluxDBClientFactory.create(url, userName, password.toCharArray());
+            }
+
+            return new InfluxConnection( client );
         }
         return null;
     }

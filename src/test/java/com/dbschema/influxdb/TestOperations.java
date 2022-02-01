@@ -52,7 +52,7 @@ public class TestOperations {
         pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("bill", 34.22).time(yesterday, WritePrecision.S));
         pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Jayne").addTag("lastName", "Johnson").addField("bill", 51.34).time(today, WritePrecision.S));
         pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("bill", 22.12).time(today, WritePrecision.S));
-        writeApi.writePoints(pointsToAdd);
+        writeApi.writePoints("clients",prop.getProperty("org"), pointsToAdd);
 
 
         List<Point> pointsToAdd2 = new ArrayList<>();

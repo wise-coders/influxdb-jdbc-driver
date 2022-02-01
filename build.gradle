@@ -36,7 +36,7 @@ compileJava{
 }
 
 jar {
-    archiveName ="mongojdbc${version}.jar"
+    archiveName ="influxjdbc${version}.jar"
     manifest {
         attributes 'Main-Class': 'com.dbschema.influxdb.InfluxJdbcDriver'
         attributes 'Class-Path': configurations.runtimeClasspath.files.collect { it.getName() }.join(' ')
@@ -65,7 +65,7 @@ task tar(type: Tar, dependsOn:['clean','jar']) {
 task copyInDbSchema(type: Copy,dependsOn:['clean','jar']) {
     from configurations.runtime.allArtifacts.files
     from configurations.runtime
-    into "${project.projectDir}/../../dbschema/src/dist/drivers/MongoDb/"
+    into "${project.projectDir}/../../dbschema/src/dist/drivers/InfluxDB/"
 }*/
 
 task copyInUserHome(type: Copy,dependsOn:['clean','jar']) {

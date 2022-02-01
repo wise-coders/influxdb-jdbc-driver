@@ -22,7 +22,7 @@ public class InfluxPreparedStatement implements PreparedStatement {
 
     @Override
     public ResultSet executeQuery() throws SQLException {
-        final List<FluxTable> queryResult = connection.fluxClient.query( query );
+        final List<FluxTable> queryResult = connection.client.getQueryApi().query( query );
 
         return new InfluxResultSet( queryResult );
     }

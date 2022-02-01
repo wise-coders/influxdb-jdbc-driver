@@ -14,13 +14,14 @@ plugins{
 apply plugin: 'application'
 apply plugin: 'distribution'
 
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compile "com.influxdb:influxdb-client-java:4.0.0"
-    compile "com.influxdb:influxdb-client-flux:4.0.0"
+    compile "com.influxdb:influxdb-client-java:4.1.0"
+    compile "com.influxdb:influxdb-client-flux:4.1.0"
     testCompile 'junit:junit:4.12'
 }
 
@@ -35,9 +36,9 @@ compileJava{
 }
 
 jar {
-    archiveName ="mongojdbc${version}.jar"
+    archiveName ="influxjdbc${version}.jar"
     manifest {
-        attributes 'Main-Class': 'com.dbschema.influxdb.JdbcDriver'
+        attributes 'Main-Class': 'com.dbschema.influxdb.InfluxJdbcDriver'
         attributes 'Class-Path': configurations.runtimeClasspath.files.collect { it.getName() }.join(' ')
         attributes 'Specification-Version': "$version"
         attributes 'Specification-Vendor': "Wise Coders"
@@ -49,13 +50,13 @@ jar {
 
 
 task zip(type: Zip, dependsOn:['clean','jar']) {
-    archiveName 'InfluxDbJdbcDriver.zip'
+    archiveName 'InfluxDBJdbcDriver.zip'
     from configurations.runtime.allArtifacts.files
     from configurations.runtime
 }
 
 task tar(type: Tar, dependsOn:['clean','jar']) {
-    archiveName 'InfluxDbJdbcDriver.tar'
+    archiveName 'InfluxDBJdbcDriver.tar'
     from configurations.runtime.allArtifacts.files
     from configurations.runtime
 }
@@ -64,12 +65,12 @@ task tar(type: Tar, dependsOn:['clean','jar']) {
 task copyInDbSchema(type: Copy,dependsOn:['clean','jar']) {
     from configurations.runtime.allArtifacts.files
     from configurations.runtime
-    into "${project.projectDir}/../../dbschema/src/dist/drivers/MongoDb/"
+    into "${project.projectDir}/../../dbschema/src/dist/drivers/InfluxDB/"
 }*/
 
 task copyInUserHome(type: Copy,dependsOn:['clean','jar']) {
     from configurations.runtime.allArtifacts.files
     from configurations.runtime
-    into "${System.getProperty('user.home')}/.DbSchema/drivers/MongoDb/"
+    into "${System.getProperty('user.home')}/.DbSchema/drivers/InfluxDB/"
 }
 

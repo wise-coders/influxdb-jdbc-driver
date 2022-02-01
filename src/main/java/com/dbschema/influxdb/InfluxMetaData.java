@@ -1,5 +1,9 @@
 package com.dbschema.influxdb;
 
+import com.dbschema.influxdb.resultSet.ArrayResultSet;
+import com.influxdb.query.FluxRecord;
+import com.influxdb.query.FluxTable;
+
 import java.sql.*;
 
 public class InfluxMetaData implements DatabaseMetaData {
@@ -8,6 +12,117 @@ public class InfluxMetaData implements DatabaseMetaData {
     public InfluxMetaData(InfluxConnection connection){
         this.influxConnection = connection;
     }
+
+    @Override
+    public ResultSet getSchemas() throws SQLException {
+        ArrayResultSet result = new ArrayResultSet();
+        result.setColumnNames(new String[] { "TABLE_SCHEMA", "TABLE_CATALOG" });
+        return result;
+    }
+
+
+    @Override
+    public ResultSet getCatalogs() throws SQLException {
+        String flux = "buckets()";
+        ArrayResultSet result = new ArrayResultSet();
+        result.setColumnNames(new String[]{"TABLE_CAT"});
+        for (FluxTable fluxTable : influxConnection.client.getQueryApi().query(flux)) {
+            for (FluxRecord fluxRecord : fluxTable.getRecords()) {
+                result.addRow(new String[]{String.valueOf(fluxRecord.getValueByKey("name"))});
+            }
+        }
+        return result;
+    }
+
+
+    /**
+     * @see java.sql.DatabaseMetaData#getTables(java.lang.String, java.lang.String, java.lang.String,
+     *      java.lang.String[])
+     */
+    public ResultSet getTables(String catalogName, String schemaPattern, String tableNamePattern, String[] types)
+    {
+        final ArrayResultSet result = new ArrayResultSet();
+        result.setColumnNames(new String[]{"TABLE_CAT", "TABLE_SCHEMA", "TABLE_NAME", "TABLE_TYPE", "REMARKS", "TYPE_CAT",
+                "TYPE_SCHEMA", "TYPE_NAME", "SELF_REFERENCING_COL_NAME", "REF_GENERATION"});
+
+        result.setColumnNames(new String[]{"TABLE_CAT"});
+        for (FluxTable fluxTable : influxConnection.client.getQueryApi().query(
+                "import \"influxdata/influxdb/schema\"\n\n  schema.measurements(bucket: \"" + catalogName + "\")")) {
+            for (FluxRecord fluxRecord : fluxTable.getRecords()) {
+                result.addRow( createTableRow( catalogName, String.valueOf(fluxRecord.getValueByKey("_value")), null ));
+            }
+        }
+        return result;
+    }
+
+    private String[] createTableRow( String catalogName, String tableName, String comment ){
+        String[] data = new String[10];
+        data[0] = catalogName; // TABLE_CAT
+        data[1] = ""; // TABLE_SCHEMA
+        data[2] = tableName; // TABLE_NAME
+        data[3] = "TABLE"; // TABLE_TYPE
+        data[4] = comment; // REMARKS
+        data[5] = ""; // TYPE_CAT
+        data[6] = ""; // TYPE_SCHEM
+        data[7] = ""; // TYPE_NAME
+        data[8] = ""; // SELF_REFERENCING_COL_NAME
+        data[9] = ""; // REF_GENERATION
+        return data;
+    }
+
+
+    /**
+     * @see java.sql.DatabaseMetaData#getColumns(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+     */
+    public ResultSet getColumns(String catalogName, String schemaName, String tableNamePattern, String columnNamePattern) {
+
+        final ArrayResultSet result = new ArrayResultSet();
+        result.setColumnNames(new String[] { "TABLE_CAT", "TABLE_SCHEMA", "TABLE_NAME", "COLUMN_NAME",
+                "DATA_TYPE", "TYPE_NAME", "COLUMN_SIZE", "BUFFER_LENGTH", "DECIMAL_DIGITS", "NUM_PREC_RADIX",
+                "NULLABLE", "REMARKS", "COLUMN_DEF", "SQL_DATA_TYPE", "SQL_DATETIME_SUB", "CHAR_OCTET_LENGTH",
+                "ORDINAL_POSITION", "IS_NULLABLE", "SCOPE_CATALOG", "SCOPE_SCHEMA", "SCOPE_TABLE",
+                "SOURCE_DATA_TYPE", "IS_AUTOINCREMENT", "OPTIONS" });
+
+        result.setColumnNames(new String[]{"TABLE_CAT"});
+        for (FluxTable fluxTable : influxConnection.client.getQueryApi().query(
+                "import \"influxdata/influxdb/schema\"\n\n  schema.fieldKeys(bucket: \"" + catalogName + "\")")) {
+            for (FluxRecord fluxRecord : fluxTable.getRecords()) {
+                exportColumnsRecursive( catalogName, "", String.valueOf(fluxRecord.getValueByKey("_value")), result );
+            }
+        }
+
+        return result;
+    }
+
+    private void exportColumnsRecursive( String catalogName, String tableName, String columnName, ArrayResultSet result) {
+        result.addRow(new String[] {
+                catalogName, // "TABLE_CAT",
+                null, // "TABLE_SCHEMA",
+                tableName, // "TABLE_NAME", (i.e. Cassandra Collection Name)
+                columnName, // "COLUMN_NAME",
+                "4", // "DATA_TYPE",
+                "string", // "TYPE_NAME", -- I LET THIS INTENTIONALLY TO USE .toString() BECAUSE OF USER DEFINED TYPES.
+                "800", // "COLUMN_SIZE",
+                "0", // "BUFFER_LENGTH", (not used)
+                "0", // "DECIMAL_DIGITS",
+                "10", // "NUM_PREC_RADIX",
+                "0", // "NULLABLE", // I RETREIVE HERE IF IS FROZEN ( MANDATORY ) OR NOT ( NULLABLE )
+                "", // "REMARKS",
+                "", // "COLUMN_DEF",
+                "0", // "SQL_DATA_TYPE", (not used)
+                "0", // "SQL_DATETIME_SUB", (not used)
+                "800", // "CHAR_OCTET_LENGTH",
+                "1", // "ORDINAL_POSITION",
+                "NO", // "IS_NULLABLE",
+                null, // "SCOPE_CATLOG", (not a REF type)
+                null, // "SCOPE_SCHEMA", (not a REF type)
+                null, // "SCOPE_TABLE", (not a REF type)
+                null, // "SOURCE_DATA_TYPE", (not a DISTINCT or REF type)
+                "NO", // "IS_AUTOINCREMENT" (can be auto-generated, but can also be specified)
+                null // TABLE_OPTIONS
+        });
+    }
+
 
     @Override
     public boolean allProceduresAreCallable() throws SQLException {
@@ -609,28 +724,10 @@ public class InfluxMetaData implements DatabaseMetaData {
         return null;
     }
 
-    @Override
-    public ResultSet getTables(String catalog, String schemaPattern, String tableNamePattern, String[] types) throws SQLException {
-        return null;
-    }
 
-    @Override
-    public ResultSet getSchemas() throws SQLException {
-        return null;
-    }
-
-    @Override
-    public ResultSet getCatalogs() throws SQLException {
-        return null;
-    }
 
     @Override
     public ResultSet getTableTypes() throws SQLException {
-        return null;
-    }
-
-    @Override
-    public ResultSet getColumns(String catalog, String schemaPattern, String tableNamePattern, String columnNamePattern) throws SQLException {
         return null;
     }
 

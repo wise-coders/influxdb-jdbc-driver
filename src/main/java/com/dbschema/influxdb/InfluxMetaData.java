@@ -85,9 +85,15 @@ public class InfluxMetaData implements DatabaseMetaData {
 
         result.setColumnNames(new String[]{"TABLE_CAT"});
         for (FluxTable fluxTable : influxConnection.client.getQueryApi().query(
+                "import \"influxdata/influxdb/schema\"\n\n  schema.tagKeys(bucket: \"" + catalogName + "\")")) {
+            for (FluxRecord fluxRecord : fluxTable.getRecords()) {
+                exportColumnsRecursive( catalogName, fluxTable.toString(), String.valueOf(fluxRecord.getValueByKey("_value")), result );
+            }
+        }
+        for (FluxTable fluxTable : influxConnection.client.getQueryApi().query(
                 "import \"influxdata/influxdb/schema\"\n\n  schema.fieldKeys(bucket: \"" + catalogName + "\")")) {
             for (FluxRecord fluxRecord : fluxTable.getRecords()) {
-                exportColumnsRecursive( catalogName, "", String.valueOf(fluxRecord.getValueByKey("_value")), result );
+                exportColumnsRecursive( catalogName, fluxTable.toString(), String.valueOf(fluxRecord.getValueByKey("_value")), result );
             }
         }
 
@@ -121,6 +127,35 @@ public class InfluxMetaData implements DatabaseMetaData {
                 "NO", // "IS_AUTOINCREMENT" (can be auto-generated, but can also be specified)
                 null // TABLE_OPTIONS
         });
+    }
+
+    @Override
+    public ResultSet getIndexInfo(String catalogName, String schema, String table, boolean unique, boolean approximate) throws SQLException {
+        ArrayResultSet result = new ArrayResultSet();
+        result.setColumnNames(new String[]{"TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME", "NON_UNIQUE",
+                "INDEX_QUALIFIER", "INDEX_NAME", "TYPE", "ORDINAL_POSITION", "COLUMN_NAME", "ASC_OR_DESC",
+                "CARDINALITY", "PAGES", "FILTER_CONDITION"});
+
+        for (FluxTable fluxTable : influxConnection.client.getQueryApi().query(
+                "import \"influxdata/influxdb/schema\"\n\n  schema.tagKeys(bucket: \"" + catalogName + "\")")) {
+            for (FluxRecord fluxRecord : fluxTable.getRecords()) {
+                result.addRow(new String[] { catalogName, // "TABLE_CAT",
+                        null, // "TABLE_SCHEMA",
+                        fluxTable.toString(), // "TABLE_NAME", (measurement)
+                        "YES", // "NON-UNIQUE",
+                        String.valueOf(fluxRecord.getValueByKey("_value")), // "INDEX QUALIFIER",
+                        String.valueOf(fluxRecord.getValueByKey("_value")), // "INDEX_NAME",
+                        "0", // "TYPE",
+                        "0", // "ORDINAL_POSITION"
+                        String.valueOf(fluxRecord.getValueByKey("_value")), // "COLUMN_NAME",
+                        "A", // "ASC_OR_DESC",
+                        "0", // "CARDINALITY",
+                        "0", // "PAGES",
+                        "" // "FILTER_CONDITION",
+                });
+            }
+        }
+        return result;
     }
 
 
@@ -773,11 +808,6 @@ public class InfluxMetaData implements DatabaseMetaData {
 
     @Override
     public ResultSet getTypeInfo() throws SQLException {
-        return null;
-    }
-
-    @Override
-    public ResultSet getIndexInfo(String catalog, String schema, String table, boolean unique, boolean approximate) throws SQLException {
         return null;
     }
 

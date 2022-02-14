@@ -46,13 +46,16 @@ public class InfluxJdbcDriver implements Driver
         if ( url != null && acceptsURL( url )){
             String userName = ( info != null ? (String)info.get("user") : null );
             String password = ( info != null ? (String)info.get("password") : null );
+            String token = ( info != null ? (String)info.get("token") : null );
 
             InfluxDBClient client;
 
-            if (userName == null || password == null) {
+            if (userName != null && password != null) {
+                client = InfluxDBClientFactory.create(url, userName, password.toCharArray());
+            } else if (token == null) {
                 client = InfluxDBClientFactory.create( url );
             } else {
-                client = InfluxDBClientFactory.create(url, userName, password.toCharArray());
+                client = InfluxDBClientFactory.create( url, token.toCharArray() );
             }
 
             return new InfluxConnection( client );

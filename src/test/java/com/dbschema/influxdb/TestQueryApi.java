@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public class TestOperations {
+public class TestQueryApi {
 
     private InfluxDBClient influxDBClient;
     private final Properties prop = new Properties();

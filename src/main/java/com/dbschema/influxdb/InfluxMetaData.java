@@ -1,6 +1,8 @@
 package com.dbschema.influxdb;
 
 import com.dbschema.influxdb.resultSet.ArrayResultSet;
+import com.influxdb.client.QueryApi;
+import com.influxdb.query.FluxColumn;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 
@@ -71,43 +73,91 @@ public class InfluxMetaData implements DatabaseMetaData {
     }
 
 
+
+    public static String  getColumnDataType(QueryApi queryApi, String schemaName, String measurement, String columnName) {
+
+
+        String fluxToGetDataType = "from(bucket: \"" + schemaName + "\") \n" +
+                "|> range(start: -40d) \n" +
+                "|> filter(fn: (r) => r._measurement == \"" + measurement + "\") \n" +
+                "|> filter(fn: (r) => r._field == \"" + columnName + "\") \n" +
+                "|> keep(columns: [\"_value\"]) \n" +
+                "|> last() \n";
+
+        System.out.println(fluxToGetDataType);
+
+        FluxTable columnTypeTable = queryApi.query(fluxToGetDataType).get(0);
+
+        for (FluxColumn columnType : columnTypeTable.getColumns()) {
+            if (columnType.getLabel().equals("_value")) {
+                System.out.println("  ColumnType " + columnType.getDataType());
+                return columnType.getDataType();
+            }
+        }
+
+
+
+        return null;
+    }
+
+
     /**
      * @see java.sql.DatabaseMetaData#getColumns(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
      */
     public ResultSet getColumns(String catalogName, String schemaName, String tableNamePattern, String columnNamePattern) {
 
         final ArrayResultSet result = new ArrayResultSet();
-        result.setColumnNames(new String[] { "TABLE_CAT", "TABLE_SCHEMA", "TABLE_NAME", "COLUMN_NAME",
+        /* result.setColumnNames(new String[] { "TABLE_CAT", "TABLE_SCHEMA", "TABLE_NAME", "COLUMN_NAME",
                 "DATA_TYPE", "TYPE_NAME", "COLUMN_SIZE", "BUFFER_LENGTH", "DECIMAL_DIGITS", "NUM_PREC_RADIX",
                 "NULLABLE", "REMARKS", "COLUMN_DEF", "SQL_DATA_TYPE", "SQL_DATETIME_SUB", "CHAR_OCTET_LENGTH",
                 "ORDINAL_POSITION", "IS_NULLABLE", "SCOPE_CATALOG", "SCOPE_SCHEMA", "SCOPE_TABLE",
                 "SOURCE_DATA_TYPE", "IS_AUTOINCREMENT", "OPTIONS" });
-
+        */
         result.setColumnNames(new String[]{"TABLE_CAT"});
-        for (FluxTable fluxTable : influxConnection.client.getQueryApi().query(
-                "import \"influxdata/influxdb/schema\"\n\n  schema.tagKeys(bucket: \"" + catalogName + "\")")) {
-            for (FluxRecord fluxRecord : fluxTable.getRecords()) {
-                exportColumnsRecursive( catalogName, fluxTable.toString(), String.valueOf(fluxRecord.getValueByKey("_value")), result );
+
+        QueryApi queryApi = influxConnection.client.getQueryApi();
+
+        String schemaNameFlux = "import \"influxdata/influxdb/schema\"\n" +
+                "\n" +
+                "schema.measurements(bucket: \"" + schemaName + "\")";
+
+        for (FluxTable measurementNames : queryApi.query(schemaNameFlux)) {
+            for (FluxRecord fluxRecord : measurementNames.getRecords() ) {
+
+                String measurement = String.valueOf( fluxRecord.getValueByKey("_value") );
+                System.out.println("#### Measurement " + measurement);
+                String flux2 = "import \"influxdata/influxdb/schema\"\n" +
+                        "\n" +
+                        "schema.measurementFieldKeys(bucket: \"" + schemaName + "\", measurement: \"" + measurement + "\")";
+                for (FluxTable columnNames : queryApi.query(flux2)) {
+                    for (FluxRecord columnNamesRecord : columnNames.getRecords()) {
+                        String column = String.valueOf(columnNamesRecord.getValueByKey("_value"));
+                        System.out.println("  Column " + column);
+
+
+                        String columnDataType =getColumnDataType(queryApi, schemaName, measurement, column);
+
+
+                        exportColumnsRecursive( catalogName, measurement, column,  columnDataType, result );
+
+                    }
+
+                }
             }
         }
-        for (FluxTable fluxTable : influxConnection.client.getQueryApi().query(
-                "import \"influxdata/influxdb/schema\"\n\n  schema.fieldKeys(bucket: \"" + catalogName + "\")")) {
-            for (FluxRecord fluxRecord : fluxTable.getRecords()) {
-                exportColumnsRecursive( catalogName, fluxTable.toString(), String.valueOf(fluxRecord.getValueByKey("_value")), result );
-            }
-        }
+
 
         return result;
     }
 
-    private void exportColumnsRecursive( String catalogName, String tableName, String columnName, ArrayResultSet result) {
+    private void exportColumnsRecursive( String catalogName, String tableName, String columnName,String columnType, ArrayResultSet result) {
         result.addRow(new String[] {
                 catalogName, // "TABLE_CAT",
                 null, // "TABLE_SCHEMA",
                 tableName, // "TABLE_NAME", (i.e. Cassandra Collection Name)
                 columnName, // "COLUMN_NAME",
                 "4", // "DATA_TYPE",
-                "string", // "TYPE_NAME", -- I LET THIS INTENTIONALLY TO USE .toString() BECAUSE OF USER DEFINED TYPES.
+                columnType, // "TYPE_NAME", -- I LET THIS INTENTIONALLY TO USE .toString() BECAUSE OF USER DEFINED TYPES.
                 "800", // "COLUMN_SIZE",
                 "0", // "BUFFER_LENGTH", (not used)
                 "0", // "DECIMAL_DIGITS",

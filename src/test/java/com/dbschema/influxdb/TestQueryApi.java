@@ -2,8 +2,10 @@ package com.dbschema.influxdb;
 
 import com.influxdb.client.*;
 import com.influxdb.client.domain.Bucket;
+import com.influxdb.client.domain.BucketRetentionRules;
 import com.influxdb.client.domain.WritePrecision;
 import com.influxdb.client.write.Point;
+import com.influxdb.query.FluxColumn;
 import com.influxdb.query.FluxRecord;
 import com.influxdb.query.FluxTable;
 import org.junit.After;
@@ -41,7 +43,6 @@ public class TestQueryApi {
         Instant yesterday = today.minus(Period.ofDays(1));
         Instant daybefore = yesterday.minus(Period.ofDays(1));
 
-        try { influxDBClient.getBucketsApi().deleteBucket("clients"); } catch ( Throwable ex ){}
 
 
         List<Point> pointsToAdd = new ArrayList<>();
@@ -51,7 +52,7 @@ public class TestQueryApi {
         pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("bill", 34.22).time(yesterday, WritePrecision.S));
         pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Jayne").addTag("lastName", "Johnson").addField("bill", 51.34).time(today, WritePrecision.S));
         pointsToAdd.add(Point.measurement("clients").addTag("firstName", "Bill").addTag("lastName", "Coulam").addField("bill", 22.12).time(today, WritePrecision.S));
-        writeApi.writePoints("clients",prop.getProperty("org"), pointsToAdd);
+        writeApi.writePoints( pointsToAdd);
 
 
         List<Point> pointsToAdd2 = new ArrayList<>();
@@ -81,6 +82,59 @@ public class TestQueryApi {
             System.out.printf("Bucket " + bucket.toString());
         }
         influxDBClient.close();
+    }
+
+
+    /**
+     List measurements (similar with tables) and its columns
+     */
+    @Test
+    public void listColumns() throws SQLException {
+
+        String bucket = prop.getProperty("bucket");
+        QueryApi queryApi = influxDBClient.getQueryApi();
+
+        String flux = "import \"influxdata/influxdb/schema\"\n" +
+                "\n" +
+                "schema.measurements(bucket: \"" + bucket + "\")";
+
+        for (FluxTable fluxTable : queryApi.query(flux)) {
+            for (FluxRecord fluxRecord : fluxTable.getRecords() ) {
+
+                String measurement = String.valueOf( fluxRecord.getValueByKey("_value") );
+                System.out.println("#### Measurement " + measurement);
+                String flux2 = "import \"influxdata/influxdb/schema\"\n" +
+                        "\n" +
+                        "schema.measurementFieldKeys(bucket: \"" + bucket + "\", measurement: \"" + measurement + "\")";
+
+                for (FluxTable columnNames : queryApi.query(flux2)) {
+
+                    for (FluxRecord columnNamesRecord : columnNames.getRecords()) {
+                        String column = String.valueOf( columnNamesRecord.getValueByKey("_value") );
+                        System.out.println("  Column " + column );
+
+                        String fluxToGetDataType = "from(bucket: \"" + bucket + "\") \n" +
+                                "|> range(start: -40d) \n" +
+                                "|> filter(fn: (r) => r._measurement == \"" + measurement + "\") \n" +
+                                "|> filter(fn: (r) => r._field == \"" + column + "\") \n" +
+                                "|> keep(columns: [\"_value\"]) \n" +
+                                "|> last() \n" ;
+
+                        System.out.println(fluxToGetDataType);
+
+                        FluxTable columnTypeTable =  queryApi.query(fluxToGetDataType).get(0);
+
+                        for (FluxColumn columnType : columnTypeTable.getColumns())
+                        {
+                            if (columnType.getLabel().equals("_value")) {
+                                System.out.println("  ColumnType " + columnType.getDataType());
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
     }
 
     /**

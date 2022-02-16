@@ -46,15 +46,24 @@ public class InfluxJdbcDriver implements Driver
     @Override
     public Connection connect(String url, Properties info) throws SQLException {
         if ( url != null && acceptsURL( url )){
+
+            int idx;
+            if ( ( idx = url.lastIndexOf("?") ) > -1 ){
+                for ( String pair : url.substring( idx ).split("&")){
+                    String[] keyVal = pair.split("=");
+                    String key = keyVal[0];
+                    String val = keyVal[1];
+                    if ( !info.containsKey( key )) {
+                        info.put( key, val );
+                    }
+                }
+            }
+
             String userName = ( info != null ? (String)info.get("user") : null );
             String password = ( info != null ? (String)info.get("password") : null );
             String token = ( info != null ? (String)info.get("token") : null );
             String startDaysStr = ( info != null ? (String)info.get(START_DAYS_KEY) : null );
 
-            Matcher matcher = Pattern.compile(START_DAYS_KEY + "=(-?\\d+)", Pattern.CASE_INSENSITIVE).matcher(url);
-            if ( matcher.find() ){
-                startDaysStr = matcher.group(0);
-            }
             int startDays = -30;
             if ( startDaysStr != null ) {
                 try {
@@ -64,70 +73,70 @@ public class InfluxJdbcDriver implements Driver
                     System.out.println(ex);
                 }
             }
-                InfluxDBClient client;
+            InfluxDBClient client;
 
-                if (userName != null && password != null) {
-                    client = InfluxDBClientFactory.create(url, userName, password.toCharArray());
-                } else if (token == null) {
-                    client = InfluxDBClientFactory.create( url );
-                } else {
-                    client = InfluxDBClientFactory.create( url, token.toCharArray() );
-                }
-
-                return new InfluxConnection( client, startDays );
+            if (userName != null && password != null) {
+                client = InfluxDBClientFactory.create(url, userName, password.toCharArray());
+            } else if (token == null) {
+                client = InfluxDBClientFactory.create( url );
+            } else {
+                client = InfluxDBClientFactory.create( url, token.toCharArray() );
             }
-            return null;
+
+            return new InfluxConnection( client, startDays );
         }
-
-
-        /**
-         * URLs accepted are of the form: jdbc:mongodb[+srv]://<server>[:27017]/<db-name>
-         *
-         * @see java.sql.Driver#acceptsURL(java.lang.String)
-         */
-        @Override
-        public boolean acceptsURL(String url) throws SQLException {
-            return url.startsWith("http");
-        }
-
-        /**
-         * @see java.sql.Driver#getPropertyInfo(java.lang.String, java.util.Properties)
-         */
-        @Override
-        public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException
-        {
-            return null;
-        }
-
-        /**
-         * @see java.sql.Driver#getMajorVersion()
-         */
-        @Override
-        public int getMajorVersion()
-        {
-            return 1;
-        }
-
-        /**
-         * @see java.sql.Driver#getMinorVersion()
-         */
-        @Override
-        public int getMinorVersion()
-        {
-            return 0;
-        }
-
-        /**
-         * @see java.sql.Driver#jdbcCompliant()
-         */
-        @Override
-        public boolean jdbcCompliant() {
-            return true;
-        }
-
-        @Override
-        public Logger getParentLogger() throws SQLFeatureNotSupportedException {
-            return null;
-        }
-
+        return null;
     }
+
+
+    /**
+     * URLs accepted are of the form: jdbc:mongodb[+srv]://<server>[:27017]/<db-name>
+     *
+     * @see java.sql.Driver#acceptsURL(java.lang.String)
+     */
+    @Override
+    public boolean acceptsURL(String url) throws SQLException {
+        return url.startsWith("http");
+    }
+
+    /**
+     * @see java.sql.Driver#getPropertyInfo(java.lang.String, java.util.Properties)
+     */
+    @Override
+    public DriverPropertyInfo[] getPropertyInfo(String url, Properties info) throws SQLException
+    {
+        return null;
+    }
+
+    /**
+     * @see java.sql.Driver#getMajorVersion()
+     */
+    @Override
+    public int getMajorVersion()
+    {
+        return 1;
+    }
+
+    /**
+     * @see java.sql.Driver#getMinorVersion()
+     */
+    @Override
+    public int getMinorVersion()
+    {
+        return 0;
+    }
+
+    /**
+     * @see java.sql.Driver#jdbcCompliant()
+     */
+    @Override
+    public boolean jdbcCompliant() {
+        return true;
+    }
+
+    @Override
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        return null;
+    }
+
+}

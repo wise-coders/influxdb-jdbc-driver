@@ -1,7 +1,39 @@
 # Influx JDBC Driver
 
+This driver is provided by [Wise Coders GmbH](https://wisecoders.com) for integrating [DbSchema Database Designer](https://dbschema.com)
+with InfluxDB.
+The driver can connect to InfluxDB, load the Influx structure using methods from the DatabaseMetaData, run Flux queries and get the result as an SQL ResultSet.
+
+
+## Licensing
+
+The driver is free to use for everyone, code modifications are allwed only to [this repository](https://github.com/wise-coders/influxdb-jdbc-driver).
+
+## Connecting using DbSchema
+
+You can connect to InfluxDB using the free version of [DbSchema Database Designer](https://dbschema.com).
+Download the tool and choose to connect to InfluxDB.
+
+In the connection dialog you have to specify the connection token, which you can get using the command:
+
+```
+influx auth list --user dbschema --hide-headers | cut -f 3
+```
+
+![DbSchema Connection Dialog](./resources/images/4.png)
+
+In the next step choose the buckets to reverse engineer.
+
+![Choose Buckets](./resources/images/5.png)
+
+Next, a layout with measurements and fields will be created.
+
+![InfluxDB Diagram](./resources/images/6.png)
+
+
 ## Setup Test Environment
-Run in docker
+
+InfluxDB can run in docker. Use the commands below to create a docker container:
 
 ```
 docker pull influxdb
@@ -35,7 +67,8 @@ This is how the script will look in the UI:
 
 
 
-# Documentation
+# Short Introduction in InfluxDB
+
 [Data Elements](https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-elements/)
 
 [Data Schema](https://docs.influxdata.com/influxdb/v2.1/reference/key-concepts/data-schema/)

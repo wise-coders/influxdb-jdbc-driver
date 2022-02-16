@@ -10,6 +10,13 @@ import java.util.Iterator;
 import java.util.Map;
 
 
+/**
+ * Copyright Wise Coders GmbH https://wisecoders.com
+ * Driver is used in the DbSchema Database Designer https://dbschema.com
+ * Free to be used by everyone.
+ * Code modifications allowed only to GitHub repository https://github.com/wise-coders/influxdb-jdbc-driver
+ */
+
 public class ResultSetIterator implements ResultSet {
 
     private final Iterator iterator;

@@ -7,7 +7,7 @@ The driver can connect to InfluxDB, load the Influx structure using methods from
 
 ## Licensing
 
-The driver is free to use for everyone, code modifications are allwed only to [this repository](https://github.com/wise-coders/influxdb-jdbc-driver).
+The driver is free to use for everyone, code modifications are allowed only to [this repository](https://github.com/wise-coders/influxdb-jdbc-driver) as pull requests or issues.
 
 ## Connecting using DbSchema
 

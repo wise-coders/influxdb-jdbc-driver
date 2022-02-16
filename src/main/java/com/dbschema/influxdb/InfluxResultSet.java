@@ -12,6 +12,12 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Copyright Wise Coders GmbH https://wisecoders.com
+ * Driver is used in the DbSchema Database Designer https://dbschema.com
+ * Free to be used by everyone.
+ * Code modifications allowed only to GitHub repository https://github.com/wise-coders/influxdb-jdbc-driver
+ */
 public class InfluxResultSet implements ResultSet {
 
     private int posTable = -1, posRecord = -1;

@@ -10,9 +10,11 @@ import java.util.concurrent.Executor;
 public class InfluxConnection implements Connection {
 
     protected final InfluxDBClient client;
+    public final int startDays;
 
-    public InfluxConnection(InfluxDBClient client ){
+    public InfluxConnection(InfluxDBClient client, int startDays){
         this.client = client;
+        this.startDays = startDays;
     }
 
     @Override

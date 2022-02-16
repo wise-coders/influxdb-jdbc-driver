@@ -1,5 +1,7 @@
 package com.dbschema.influxdb;
 
+import com.dbschema.influxdb.resultSet.ArrayResultSet;
+import com.influxdb.client.domain.Organization;
 import com.influxdb.query.FluxTable;
 
 import java.io.InputStream;
@@ -22,8 +24,17 @@ public class InfluxPreparedStatement implements PreparedStatement {
 
     @Override
     public ResultSet executeQuery() throws SQLException {
-        final List<FluxTable> queryResult = connection.client.getQueryApi().query( query );
 
+        if ( query.trim().toLowerCase().matches( "list\\s+organizations" ) ){
+            ArrayResultSet result = new ArrayResultSet();
+            result.setColumnNames(new String[]{"ORGANIZATIONS"});
+            for (Organization organization : connection.client.getOrganizationsApi().findOrganizations()) {
+                result.addRow(new String[]{String.valueOf(organization.getName())});
+            }
+            return result;
+        }
+
+        final List<FluxTable> queryResult = connection.client.getQueryApi().query( query );
         return new InfluxResultSet( queryResult );
     }
 

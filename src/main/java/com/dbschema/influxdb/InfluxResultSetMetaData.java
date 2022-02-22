@@ -5,6 +5,10 @@ import com.influxdb.query.FluxRecord;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Copyright Wise Coders GmbH https://wisecoders.com
@@ -16,25 +20,23 @@ import java.sql.Types;
 public class InfluxResultSetMetaData implements ResultSetMetaData {
 
     private final InfluxResultSet influxResultSet;
-    private String[] columnNames;
-    private Class[] columnClasses;
+    private final List<String> columnNames = new ArrayList<>();
+    private final Map<String,Class> columnClasses = new HashMap<>();
 
     public InfluxResultSetMetaData( InfluxResultSet influxResultSet ){
         this.influxResultSet = influxResultSet;
     }
 
     private void init(){
-        if ( columnNames == null ){
-            FluxRecord fluxRecord = influxResultSet.getOneFluxRecord();
-            if ( fluxRecord != null ){
-                columnNames = fluxRecord.getValues().keySet().toArray(new String[0]);
-                columnClasses = new Class[ columnNames.length ];
-                for ( int i = 0; i < columnNames.length; i++ ){
-                    String columnName = columnNames[i];
+        FluxRecord fluxRecord = influxResultSet.getOneFluxRecord();
+        if ( fluxRecord != null ){
+            for ( String columnName : fluxRecord.getValues().keySet() ){
+                if( !columnNames.contains( columnName )){
+                    columnNames.add( columnName );
+                }
+                if ( !columnClasses.containsKey( columnName ) ){
                     Object value = fluxRecord.getValues().get( columnName );
-                    if ( value != null ){
-                        columnClasses[i] = value.getClass();
-                    }
+                    if ( value != null ) columnClasses.put( columnName, value.getClass() );
                 }
             }
         }
@@ -44,22 +46,22 @@ public class InfluxResultSetMetaData implements ResultSetMetaData {
     @Override
     public int getColumnCount() throws SQLException {
         init();
-        return columnNames != null ? columnNames.length : 0;
+        return columnNames.size();
     }
 
     @Override
     public String getColumnName(int column) throws SQLException {
         init();
-        if ( columnNames != null && column < columnNames.length ){
-            return columnNames[column];
+        if ( column < columnNames.size() ){
+            return columnNames.get(column);
         }
         return null;
     }
 
     @Override
     public int getColumnType(int column) throws SQLException {
-        if ( columnClasses != null && column < columnClasses.length ){
-            Class cls = columnClasses[column];
+        if ( column < columnNames.size() ){
+            Class cls = columnClasses.get( columnNames.get(column));
             if ( String.class == cls) return Types.VARCHAR;
             else if ( Double.class == cls) return Types.DOUBLE;
             else if ( Integer.class == cls) return Types.DOUBLE;
@@ -69,8 +71,8 @@ public class InfluxResultSetMetaData implements ResultSetMetaData {
 
     @Override
     public String getColumnTypeName(int column) throws SQLException {
-        if ( columnClasses != null && column < columnClasses.length ) {
-            Class cls = columnClasses[column];
+        if ( column < columnClasses.size() ) {
+            Class cls = columnClasses.get( columnNames.get(column));
             return cls != null ? cls.getSimpleName() : "string";
         }
         return "string";
@@ -114,7 +116,7 @@ public class InfluxResultSetMetaData implements ResultSetMetaData {
 
     @Override
     public String getColumnLabel(int column) throws SQLException {
-        return null;
+        return getColumnName( column );
     }
 
     @Override

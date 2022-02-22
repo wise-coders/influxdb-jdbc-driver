@@ -4,6 +4,8 @@ package com.dbschema.influxdb;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.util.Properties;
 import java.util.logging.*;
@@ -53,12 +55,14 @@ public class InfluxJdbcDriver implements Driver
 
             int idx;
             if ( ( idx = url.lastIndexOf("?") ) > -1 ){
-                for ( String pair : url.substring( idx ).split("&")){
+                for ( String pair : url.substring( idx + 1 ).split("&")){
                     String[] keyVal = pair.split("=");
-                    String key = keyVal[0];
-                    String val = keyVal[1];
-                    if ( !info.containsKey( key )) {
-                        info.put( key, val );
+                    if ( keyVal.length == 2 ) {
+                        String key = keyVal[0];
+                        String val = URLDecoder.decode( keyVal[1], StandardCharsets.UTF_8 );
+                        if (!info.containsKey(keyVal[0])) {
+                            info.put(key, val);
+                        }
                     }
                 }
             }
@@ -66,6 +70,7 @@ public class InfluxJdbcDriver implements Driver
             String userName = ( info != null ? (String)info.get("user") : null );
             String password = ( info != null ? (String)info.get("password") : null );
             String token = ( info != null ? (String)info.get("token") : null );
+            String org = ( info != null ? (String)info.get("org") : null );
             String startDaysStr = ( info != null ? (String)info.get(START_DAYS_KEY) : null );
 
             int startDays = -30;
@@ -84,7 +89,7 @@ public class InfluxJdbcDriver implements Driver
             } else if (token == null) {
                 client = InfluxDBClientFactory.create( url );
             } else {
-                client = InfluxDBClientFactory.create( url, token.toCharArray() );
+                client = InfluxDBClientFactory.create( url, token.toCharArray(), org );
             }
 
             return new InfluxConnection( client, startDays );

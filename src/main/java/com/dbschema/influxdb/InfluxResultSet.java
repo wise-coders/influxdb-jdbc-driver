@@ -22,10 +22,10 @@ public class InfluxResultSet implements ResultSet {
 
     private int posTable = -1, posRecord = -1;
     private final List<FluxTable> fluxTables;
-    private boolean done = false;
 
     protected FluxTable fluxTable;
     protected FluxRecord fluxRecord;
+    private final InfluxResultSetMetaData resultSetMetaData = new InfluxResultSetMetaData( this );
 
     public InfluxResultSet(List<FluxTable> fluxTables){
         this.fluxTables = fluxTables;
@@ -33,28 +33,25 @@ public class InfluxResultSet implements ResultSet {
 
     @Override
     public boolean next() throws SQLException {
-        if ( done ) {
-            return false;
-        }
-        boolean loopTable;
+        boolean doLoop;
         do {
             if (fluxTable == null) {
-                if (++posTable < fluxTables.size()) {
+                posTable++;
+                if ( posTable < fluxTables.size()) {
                     fluxTable = fluxTables.get(posTable);
                     posRecord = -1;
                 } else {
-                    done = true;
                     return false;
                 }
             }
-            if (++posRecord >= fluxTable.getRecords().size()) {
+            posRecord++;
+            if ( posRecord >= fluxTable.getRecords().size()) {
                 fluxTable = null;
-                posTable++;
-                loopTable = true;
+                doLoop = true;
             } else {
-                loopTable = false;
+                doLoop = false;
             }
-        } while ( loopTable );
+        } while ( doLoop );
         fluxRecord = fluxTable.getRecords().get( posRecord );
         return true;
     }
@@ -72,13 +69,13 @@ public class InfluxResultSet implements ResultSet {
     }
 
     @Override
-    public ResultSetMetaData getMetaData() throws SQLException {
-        return new InfluxResultSetMetaData( this );
+    public ResultSetMetaData getMetaData()  {
+        return resultSetMetaData;
     }
 
 
     @Override
-    public void close() throws SQLException {
+    public void close() {
 
     }
 
@@ -89,12 +86,14 @@ public class InfluxResultSet implements ResultSet {
 
     @Override
     public String getString(int columnIndex) throws SQLException {
-        return "" + fluxRecord.getTime() + " " + fluxRecord.getValues();
+        return "" + fluxRecord.getValues().get( resultSetMetaData.getColumnName( columnIndex ));
     }
 
     @Override
     public boolean getBoolean(int columnIndex) throws SQLException {
-        return false;
+        Object val = getObject( columnIndex );
+        return val instanceof Boolean ? ((Boolean) val) : false;
+
     }
 
     @Override
@@ -104,17 +103,22 @@ public class InfluxResultSet implements ResultSet {
 
     @Override
     public short getShort(int columnIndex) throws SQLException {
-        return 0;
+        Object val = getObject( columnIndex );
+        return val instanceof Number ? ((Number) val).shortValue() : -1;
+
     }
 
     @Override
     public int getInt(int columnIndex) throws SQLException {
-        return 0;
+        Object val = getObject( columnIndex );
+        return val instanceof Number ? ((Number) val).intValue() : -1;
     }
 
     @Override
     public long getLong(int columnIndex) throws SQLException {
-        return 0;
+        Object val = getObject( columnIndex );
+        return val instanceof Number ? ((Number) val).longValue() : -1;
+
     }
 
     @Override
@@ -124,7 +128,9 @@ public class InfluxResultSet implements ResultSet {
 
     @Override
     public double getDouble(int columnIndex) throws SQLException {
-        return 0;
+        Object val = getObject( columnIndex );
+        return val instanceof Number ? ((Number) val).doubleValue() : -1;
+
     }
 
     @Override
@@ -139,7 +145,9 @@ public class InfluxResultSet implements ResultSet {
 
     @Override
     public Date getDate(int columnIndex) throws SQLException {
-        return null;
+        Object val = getObject( columnIndex );
+        return val instanceof Date ? ((Date) val) : null;
+
     }
 
     @Override
@@ -149,7 +157,9 @@ public class InfluxResultSet implements ResultSet {
 
     @Override
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
-        return null;
+        Object val = getObject( columnIndex );
+        return val instanceof Timestamp ? ((Timestamp) val) : null;
+
     }
 
     @Override
@@ -169,7 +179,9 @@ public class InfluxResultSet implements ResultSet {
 
     @Override
     public String getString(String columnLabel) throws SQLException {
-        return null;
+        Object val = getObject( columnLabel );
+        return "" + val;
+
     }
 
     @Override
@@ -264,12 +276,12 @@ public class InfluxResultSet implements ResultSet {
 
     @Override
     public Object getObject(int columnIndex) throws SQLException {
-        return null;
+        return fluxRecord.getValues().get( resultSetMetaData.getColumnName( columnIndex ));
     }
 
     @Override
     public Object getObject(String columnLabel) throws SQLException {
-        return null;
+        return fluxRecord.getValues().get( columnLabel );
     }
 
     @Override

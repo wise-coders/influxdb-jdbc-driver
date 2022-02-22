@@ -24,6 +24,7 @@ public class InfluxPreparedStatement implements PreparedStatement {
 
     private final InfluxConnection connection;
     private String query;
+    private ResultSet resultSet;
 
     public InfluxPreparedStatement( InfluxConnection connection, String query ){
         this.connection = connection;
@@ -32,7 +33,7 @@ public class InfluxPreparedStatement implements PreparedStatement {
 
     @Override
     public ResultSet executeQuery() throws SQLException {
-
+        resultSet = null;
         if ( query.trim().toLowerCase().matches( "list\\s+organizations" ) ){
             ArrayResultSet result = new ArrayResultSet();
             result.setColumnNames(new String[]{"ORGANIZATIONS"});
@@ -49,6 +50,36 @@ public class InfluxPreparedStatement implements PreparedStatement {
     @Override
     public int executeUpdate() throws SQLException {
         return 0;
+    }
+
+    @Override
+    public ResultSet executeQuery(String sql) throws SQLException {
+        this.query = sql;
+        return executeQuery();
+    }
+
+    @Override
+    public boolean execute(String sql) throws SQLException {
+        this.query = sql;
+        resultSet = executeQuery();
+        return resultSet != null;
+    }
+
+    @Override
+    public ResultSet getResultSet() throws SQLException {
+        return resultSet;
+    }
+
+
+    @Override
+    public int executeUpdate(String sql) throws SQLException {
+        return 0;
+    }
+
+    @Override
+    public boolean execute() throws SQLException {
+        resultSet = executeQuery();
+        return resultSet != null;
     }
 
     @Override
@@ -149,11 +180,6 @@ public class InfluxPreparedStatement implements PreparedStatement {
     @Override
     public void setObject(int parameterIndex, Object x) throws SQLException {
 
-    }
-
-    @Override
-    public boolean execute() throws SQLException {
-        return false;
     }
 
     @Override
@@ -316,16 +342,6 @@ public class InfluxPreparedStatement implements PreparedStatement {
 
     }
 
-    @Override
-    public ResultSet executeQuery(String sql) throws SQLException {
-        this.query = sql;
-        return executeQuery();
-    }
-
-    @Override
-    public int executeUpdate(String sql) throws SQLException {
-        return 0;
-    }
 
     @Override
     public void close() throws SQLException {
@@ -385,16 +401,6 @@ public class InfluxPreparedStatement implements PreparedStatement {
     @Override
     public void setCursorName(String name) throws SQLException {
 
-    }
-
-    @Override
-    public boolean execute(String sql) throws SQLException {
-        return false;
-    }
-
-    @Override
-    public ResultSet getResultSet() throws SQLException {
-        return null;
     }
 
     @Override

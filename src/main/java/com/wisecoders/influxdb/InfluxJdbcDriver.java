@@ -1,5 +1,5 @@
 
-package com.dbschema.influxdb;
+package com.wisecoders.influxdb;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;

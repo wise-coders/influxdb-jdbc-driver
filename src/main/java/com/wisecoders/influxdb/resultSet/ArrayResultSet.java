@@ -1,7 +1,7 @@
-package com.dbschema.influxdb.resultSet;
+package com.wisecoders.influxdb.resultSet;
 
 
-import com.dbschema.influxdb.InfluxPreparedStatement;
+import com.wisecoders.influxdb.InfluxPreparedStatement;
 
 import java.io.InputStream;
 import java.io.Reader;

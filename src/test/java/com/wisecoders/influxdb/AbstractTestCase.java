@@ -1,4 +1,4 @@
-package com.dbschema.influxdb;
+package com.wisecoders.influxdb;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

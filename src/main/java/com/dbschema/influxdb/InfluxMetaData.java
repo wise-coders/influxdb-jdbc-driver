@@ -83,10 +83,6 @@ public class InfluxMetaData implements DatabaseMetaData {
         return data;
     }
 
-
-
-
-
     /**
      * @see java.sql.DatabaseMetaData#getColumns(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
      */
@@ -104,7 +100,10 @@ public class InfluxMetaData implements DatabaseMetaData {
         for (FluxTable columnNames : influxConnection.client.getQueryApi().query(fluxQuery)) {
             for (FluxRecord columnNamesRecord : columnNames.getRecords()) {
                 String columnName = String.valueOf(columnNamesRecord.getValueByKey("_value"));
-                addColumn(catalogName, schemaName, tableName, result, columnName);
+                if ( !columnName.startsWith("_") ) {
+                    String columnDataType = getColumnDataType(influxConnection.client.getQueryApi(), schemaName, tableName, columnName);
+                    addColumn(catalogName, tableName, result, columnName, columnDataType);
+                }
             }
         }
         String fluxQuery2 = "import \"influxdata/influxdb/schema\"\n" +
@@ -112,7 +111,9 @@ public class InfluxMetaData implements DatabaseMetaData {
         for (FluxTable columnNames : influxConnection.client.getQueryApi().query(fluxQuery2)) {
             for (FluxRecord columnNamesRecord : columnNames.getRecords()) {
                 String columnName = String.valueOf(columnNamesRecord.getValueByKey("_value"));
-                addColumn(catalogName, schemaName, tableName, result, columnName);
+                if ( !columnName.startsWith("_") ) {
+                    addColumn(catalogName, tableName, result, columnName, "string");
+                }
             }
         }
         return result;
@@ -121,33 +122,37 @@ public class InfluxMetaData implements DatabaseMetaData {
     private void addColumn(String catalogName, String schemaName, String tableName, ArrayResultSet result, String columnName) {
         if ( !columnName.startsWith("_") ) {
             String columnDataType = getColumnDataType(influxConnection.client.getQueryApi(), schemaName, tableName, columnName);
-            result.addRow(new String[]{
-                    catalogName, // "TABLE_CAT",
-                    null, // "TABLE_SCHEMA",
-                    tableName, // "TABLE_NAME", (i.e. Cassandra Collection Name)
-                    columnName, // "COLUMN_NAME",
-                    "4", // "DATA_TYPE",
-                    columnDataType, // "TYPE_NAME", -- I LET THIS INTENTIONALLY TO USE .toString() BECAUSE OF USER DEFINED TYPES.
-                    "800", // "COLUMN_SIZE",
-                    "0", // "BUFFER_LENGTH", (not used)
-                    "0", // "DECIMAL_DIGITS",
-                    "10", // "NUM_PREC_RADIX",
-                    "0", // "NULLABLE", // I RETREIVE HERE IF IS FROZEN ( MANDATORY ) OR NOT ( NULLABLE )
-                    "", // "REMARKS",
-                    "", // "COLUMN_DEF",
-                    "0", // "SQL_DATA_TYPE", (not used)
-                    "0", // "SQL_DATETIME_SUB", (not used)
-                    "800", // "CHAR_OCTET_LENGTH",
-                    "1", // "ORDINAL_POSITION",
-                    "NO", // "IS_NULLABLE",
-                    null, // "SCOPE_CATLOG", (not a REF type)
-                    null, // "SCOPE_SCHEMA", (not a REF type)
-                    null, // "SCOPE_TABLE", (not a REF type)
-                    null, // "SOURCE_DATA_TYPE", (not a DISTINCT or REF type)
-                    "NO", // "IS_AUTOINCREMENT" (can be auto-generated, but can also be specified)
-                    null // TABLE_OPTIONS
-            });
+            addColumn(catalogName, tableName, result, columnName, columnDataType);
         }
+    }
+
+    private void addColumn(String catalogName, String tableName, ArrayResultSet result, String columnName, String columnDataType) {
+        result.addRow(new String[]{
+                catalogName, // "TABLE_CAT",
+                null, // "TABLE_SCHEMA",
+                tableName, // "TABLE_NAME", (i.e. Cassandra Collection Name)
+                columnName, // "COLUMN_NAME",
+                "4", // "DATA_TYPE",
+                columnDataType, // "TYPE_NAME", -- I LET THIS INTENTIONALLY TO USE .toString() BECAUSE OF USER DEFINED TYPES.
+                "800", // "COLUMN_SIZE",
+                "0", // "BUFFER_LENGTH", (not used)
+                "0", // "DECIMAL_DIGITS",
+                "10", // "NUM_PREC_RADIX",
+                "0", // "NULLABLE", // I RETREIVE HERE IF IS FROZEN ( MANDATORY ) OR NOT ( NULLABLE )
+                "", // "REMARKS",
+                "", // "COLUMN_DEF",
+                "0", // "SQL_DATA_TYPE", (not used)
+                "0", // "SQL_DATETIME_SUB", (not used)
+                "800", // "CHAR_OCTET_LENGTH",
+                "1", // "ORDINAL_POSITION",
+                "NO", // "IS_NULLABLE",
+                null, // "SCOPE_CATLOG", (not a REF type)
+                null, // "SCOPE_SCHEMA", (not a REF type)
+                null, // "SCOPE_TABLE", (not a REF type)
+                null, // "SOURCE_DATA_TYPE", (not a DISTINCT or REF type)
+                "NO", // "IS_AUTOINCREMENT" (can be auto-generated, but can also be specified)
+                null // TABLE_OPTIONS
+        });
     }
 
     public static String  getColumnDataType(QueryApi queryApi, String schemaName, String measurement, String columnName) {

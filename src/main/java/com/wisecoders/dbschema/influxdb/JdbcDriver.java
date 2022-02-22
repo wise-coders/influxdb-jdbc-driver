@@ -1,5 +1,5 @@
 
-package com.wisecoders.influxdb;
+package com.wisecoders.dbschema.influxdb;
 
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
@@ -17,14 +17,14 @@ import java.util.logging.*;
  * Code modifications allowed only to GitHub repository https://github.com/wise-coders/influxdb-jdbc-driver
  */
 
-public class InfluxJdbcDriver implements Driver
+public class JdbcDriver implements Driver
 {
 
-    public static final Logger LOGGER = Logger.getLogger( InfluxJdbcDriver.class.getName() );
+    public static final Logger LOGGER = Logger.getLogger( JdbcDriver.class.getName() );
 
     static {
         try {
-            DriverManager.registerDriver( new InfluxJdbcDriver());
+            DriverManager.registerDriver( new JdbcDriver());
             LOGGER.setLevel(Level.SEVERE);
             final ConsoleHandler consoleHandler = new ConsoleHandler();
             consoleHandler.setLevel(Level.FINEST);

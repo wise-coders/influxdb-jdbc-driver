@@ -1,4 +1,4 @@
-package com.wisecoders.influxdb;
+package com.wisecoders.dbschema.influxdb;
 
 import com.influxdb.query.FluxRecord;
 

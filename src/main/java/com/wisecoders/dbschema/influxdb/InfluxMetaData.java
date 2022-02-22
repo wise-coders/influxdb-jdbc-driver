@@ -1,6 +1,6 @@
-package com.wisecoders.influxdb;
+package com.wisecoders.dbschema.influxdb;
 
-import com.wisecoders.influxdb.resultSet.ArrayResultSet;
+import com.wisecoders.dbschema.influxdb.resultSet.ArrayResultSet;
 import com.influxdb.client.QueryApi;
 import com.influxdb.client.domain.Organization;
 import com.influxdb.query.FluxColumn;

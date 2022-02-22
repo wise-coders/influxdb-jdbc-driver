@@ -1,1 +1,1 @@
-com.wisecoders.influxdb.InfluxJdbcDriver
+com.wisecoders.dbschema.influxdb.JdbcDriver

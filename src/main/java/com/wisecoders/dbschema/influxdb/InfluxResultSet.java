@@ -1,4 +1,7 @@
-package com.wisecoders.influxdb.resultSet;
+package com.wisecoders.dbschema.influxdb;
+
+import com.influxdb.query.FluxRecord;
+import com.influxdb.query.FluxTable;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -6,9 +9,8 @@ import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.*;
 import java.util.Calendar;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-
 
 /**
  * Copyright Wise Coders GmbH https://wisecoders.com
@@ -16,50 +18,65 @@ import java.util.Map;
  * Free to be used by everyone.
  * Code modifications allowed only to GitHub repository https://github.com/wise-coders/influxdb-jdbc-driver
  */
+public class InfluxResultSet implements ResultSet {
 
-public class ResultSetIterator implements ResultSet {
+    private int posTable = -1, posRecord = -1;
+    private final List<FluxTable> fluxTables;
 
-    private final Iterator iterator;
-    protected Object actual;
+    protected FluxTable fluxTable;
+    protected FluxRecord fluxRecord;
+    private final InfluxResultSetMetaData resultSetMetaData = new InfluxResultSetMetaData( this );
 
-    public ResultSetIterator(){
-        this.iterator = null;
-    }
-
-    public ResultSetIterator(Iterable iterable){
-        iterator = (iterable != null ? iterable.iterator() : null);
-    }
-
-
-    public ResultSetIterator(Iterator iterator){
-        this.iterator = iterator;
-    }
-
-
-    @Override
-    public Object getObject(int columnIndex) throws SQLException {
-        return actual;
+    public InfluxResultSet(List<FluxTable> fluxTables){
+        this.fluxTables = fluxTables;
     }
 
     @Override
     public boolean next() throws SQLException {
-        actual = null;
-        if ( iterator != null ) {
-            if ( iterator.hasNext() ) {
-                actual = iterator.next();
-                return true;
+        boolean doLoop;
+        do {
+            if (fluxTable == null) {
+                posTable++;
+                if ( posTable < fluxTables.size()) {
+                    fluxTable = fluxTables.get(posTable);
+                    posRecord = -1;
+                } else {
+                    return false;
+                }
             }
+            posRecord++;
+            if ( posRecord >= fluxTable.getRecords().size()) {
+                fluxTable = null;
+                doLoop = true;
+            } else {
+                doLoop = false;
+            }
+        } while ( doLoop );
+        fluxRecord = fluxTable.getRecords().get( posRecord );
+        return true;
+    }
+
+    public FluxRecord getOneFluxRecord(){
+        if ( fluxRecord != null ) return fluxRecord;
+        FluxTable fluxTable = this.fluxTable;
+        if ( fluxTable == null ) {
+            fluxTable = fluxTables.get( 0 );
         }
-        return false;
+        if ( fluxTable != null ){
+            return fluxTable.getRecords().get( 0 );
+        }
+        return null;
     }
 
     @Override
-    public void close() throws SQLException {
+    public ResultSetMetaData getMetaData()  {
+        return resultSetMetaData;
     }
 
+
     @Override
-    public ResultSetMetaData getMetaData() throws SQLException {
-        return new ArrayResultSetMetaData("Result", new String[]{"map"}, new int[]{Types.JAVA_OBJECT}, new int[]{300});
+    public void close() {
+
     }
 
     @Override
@@ -69,12 +86,14 @@ public class ResultSetIterator implements ResultSet {
 
     @Override
     public String getString(int columnIndex) throws SQLException {
-        return null;
+        return "" + fluxRecord.getValues().get( resultSetMetaData.getColumnName( columnIndex ));
     }
 
     @Override
     public boolean getBoolean(int columnIndex) throws SQLException {
-        return false;
+        Object val = getObject( columnIndex );
+        return val instanceof Boolean ? ((Boolean) val) : false;
+
     }
 
     @Override
@@ -84,17 +103,22 @@ public class ResultSetIterator implements ResultSet {
 
     @Override
     public short getShort(int columnIndex) throws SQLException {
-        return 0;
+        Object val = getObject( columnIndex );
+        return val instanceof Number ? ((Number) val).shortValue() : -1;
+
     }
 
     @Override
     public int getInt(int columnIndex) throws SQLException {
-        return 0;
+        Object val = getObject( columnIndex );
+        return val instanceof Number ? ((Number) val).intValue() : -1;
     }
 
     @Override
     public long getLong(int columnIndex) throws SQLException {
-        return 0;
+        Object val = getObject( columnIndex );
+        return val instanceof Number ? ((Number) val).longValue() : -1;
+
     }
 
     @Override
@@ -104,7 +128,9 @@ public class ResultSetIterator implements ResultSet {
 
     @Override
     public double getDouble(int columnIndex) throws SQLException {
-        return 0;
+        Object val = getObject( columnIndex );
+        return val instanceof Number ? ((Number) val).doubleValue() : -1;
+
     }
 
     @Override
@@ -119,7 +145,9 @@ public class ResultSetIterator implements ResultSet {
 
     @Override
     public Date getDate(int columnIndex) throws SQLException {
-        return null;
+        Object val = getObject( columnIndex );
+        return val instanceof Date ? ((Date) val) : null;
+
     }
 
     @Override
@@ -129,7 +157,9 @@ public class ResultSetIterator implements ResultSet {
 
     @Override
     public Timestamp getTimestamp(int columnIndex) throws SQLException {
-        return null;
+        Object val = getObject( columnIndex );
+        return val instanceof Timestamp ? ((Timestamp) val) : null;
+
     }
 
     @Override
@@ -149,7 +179,9 @@ public class ResultSetIterator implements ResultSet {
 
     @Override
     public String getString(String columnLabel) throws SQLException {
-        return null;
+        Object val = getObject( columnLabel );
+        return "" + val;
+
     }
 
     @Override
@@ -242,11 +274,14 @@ public class ResultSetIterator implements ResultSet {
         return null;
     }
 
-
+    @Override
+    public Object getObject(int columnIndex) throws SQLException {
+        return fluxRecord.getValues().get( resultSetMetaData.getColumnName( columnIndex ));
+    }
 
     @Override
     public Object getObject(String columnLabel) throws SQLException {
-        return null;
+        return fluxRecord.getValues().get( columnLabel );
     }
 
     @Override

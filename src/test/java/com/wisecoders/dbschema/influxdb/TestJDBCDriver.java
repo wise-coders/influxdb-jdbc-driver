@@ -1,4 +1,4 @@
-package com.wisecoders.influxdb;
+package com.wisecoders.dbschema.influxdb;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +25,7 @@ public class TestJDBCDriver extends AbstractTestCase {
 
     @Before
     public void setUp() throws ClassNotFoundException, SQLException, IOException {
-        Class.forName("com.wisecoders.influxdb.InfluxJdbcDriver");
+        Class.forName("com.wisecoders.dbschema.influxdb.JdbcDriver");
 
         final Properties properties = new Properties();
         properties.load(new FileInputStream("gradle.properties"));

@@ -38,7 +38,7 @@ compileJava{
 jar {
     archiveName ="influxjdbc${version}.jar"
     manifest {
-        attributes 'Main-Class': 'com.dbschema.influxdb.InfluxJdbcDriver'
+        attributes 'Main-Class': 'com.wisecoders.dbschema.influxdb.JdbcDriver'
         attributes 'Class-Path': configurations.runtimeClasspath.files.collect { it.getName() }.join(' ')
         attributes 'Specification-Version': "$version"
         attributes 'Specification-Vendor': "Wise Coders"

@@ -11,6 +11,8 @@ import java.net.URL;
 import java.sql.*;
 import java.util.Calendar;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -21,6 +23,8 @@ import java.util.List;
  */
 
 public class InfluxPreparedStatement implements PreparedStatement {
+
+    public static final Logger LOGGER = Logger.getLogger( JdbcDriver.class.getName() );
 
     private final InfluxConnection connection;
     private String query;
@@ -35,6 +39,8 @@ public class InfluxPreparedStatement implements PreparedStatement {
     public ResultSet executeQuery() throws SQLException {
         resultSet = null;
         if ( query.trim().toLowerCase().matches( "list\\s+organizations" ) ){
+            LOGGER.log(Level.INFO, "List organizations");
+
             ArrayResultSet result = new ArrayResultSet();
             result.setColumnNames(new String[]{"ORGANIZATIONS"});
             for (Organization organization : connection.client.getOrganizationsApi().findOrganizations()) {

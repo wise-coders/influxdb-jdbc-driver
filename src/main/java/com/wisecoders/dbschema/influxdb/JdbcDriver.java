@@ -1,6 +1,7 @@
 
 package com.wisecoders.dbschema.influxdb;
 
+import com.influxdb.LogLevel;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 
@@ -79,7 +80,7 @@ public class JdbcDriver implements Driver
                     startDays = Integer.parseInt(startDaysStr);
                     if ( startDays > 0 ) startDays = -1* startDays;
                 } catch (NumberFormatException ex) {
-                    System.out.println(ex);
+                    LOGGER.log(Level.SEVERE, "Cannot parse startdate.", ex);
                 }
             }
             InfluxDBClient client;

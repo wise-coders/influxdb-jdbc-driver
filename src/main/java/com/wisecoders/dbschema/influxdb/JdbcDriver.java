@@ -1,7 +1,6 @@
 
 package com.wisecoders.dbschema.influxdb;
 
-import com.influxdb.LogLevel;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 
@@ -43,7 +42,7 @@ public class JdbcDriver implements Driver
         }
     }
 
-    public static final String START_DAYS_KEY = "startdays";
+    public static final String DAYS = "days";
 
     /**
      * Connect to the database using a URL like :
@@ -63,6 +62,7 @@ public class JdbcDriver implements Driver
                         String val = URLDecoder.decode( keyVal[1], StandardCharsets.UTF_8 );
                         if (!info.containsKey(keyVal[0])) {
                             info.put(key, val);
+                            LOGGER.log(Level.INFO, "Param " + key + "=" + val );
                         }
                     }
                 }
@@ -72,15 +72,18 @@ public class JdbcDriver implements Driver
             String password = ( info != null ? (String)info.get("password") : null );
             String token = ( info != null ? (String)info.get("token") : null );
             String org = ( info != null ? (String)info.get("org") : null );
-            String startDaysStr = ( info != null ? (String)info.get(START_DAYS_KEY) : null );
+            String startDaysStr = ( info != null ? (String)info.get(DAYS) : null );
+
+            LOGGER.log( Level.INFO, "Connection URL=" + url + " user=" + userName  + " password=" + password + " org=" + org +" token=" + token  + " days=" + startDaysStr );
 
             int startDays = -30;
             if ( startDaysStr != null ) {
                 try {
                     startDays = Integer.parseInt(startDaysStr);
                     if ( startDays > 0 ) startDays = -1* startDays;
+                    LOGGER.log(Level.INFO, "Use days=" + startDays);
                 } catch (NumberFormatException ex) {
-                    LOGGER.log(Level.SEVERE, "Cannot parse startdate.", ex);
+                    LOGGER.log(Level.SEVERE, "Cannot parse parameter 'days'.", ex);
                 }
             }
             InfluxDBClient client;

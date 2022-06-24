@@ -30,6 +30,9 @@ Next, a layout with measurements and fields will be created.
 
 ![InfluxDB Diagram](./resources/images/6.png)
 
+## Download the InfluxDB JDBC Driver
+
+The driver can be downloaded from the [DbSchema website](https://dbschema.com/jdbc-drivers/InfluxDBJdbcDriver.zip)
 
 ## Setup Test Environment
 

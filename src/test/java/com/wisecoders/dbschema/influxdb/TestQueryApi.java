@@ -148,7 +148,7 @@ public class TestQueryApi {
         List measurements (similar with tables) and its columns
      */
     @Test
-    public void listMeasurementAndFieldNames() throws SQLException {
+    public void listMeasurementAndFieldNames() {
 
         String bucket = prop.getProperty("bucket");
         QueryApi queryApi = influxDBClient.getQueryApi();

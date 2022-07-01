@@ -20,9 +20,9 @@ repositories {
 }
 
 dependencies {
-    compile "com.influxdb:influxdb-client-java:4.1.0"
-    compile "com.influxdb:influxdb-client-flux:4.1.0"
-    testCompile 'junit:junit:4.12'
+    implementation "com.influxdb:influxdb-client-java:4.1.0"
+    implementation "com.influxdb:influxdb-client-flux:4.1.0"
+    testImplementation 'junit:junit:4.12'
 }
 
 compileJava{
@@ -51,14 +51,14 @@ jar {
 
 task zip(type: Zip, dependsOn:['clean','jar']) {
     archiveName 'InfluxDBJdbcDriver.zip'
-    from configurations.runtime.allArtifacts.files
-    from configurations.runtime
+    from configurations.runtimeClasspath.allArtifacts.files
+    from configurations.runtimeClasspath
 }
 
 task tar(type: Tar, dependsOn:['clean','jar']) {
     archiveName 'InfluxDBJdbcDriver.tar'
-    from configurations.runtime.allArtifacts.files
-    from configurations.runtime
+    from configurations.runtimeClasspath.allArtifacts.files
+    from configurations.runtimeClasspath
 }
 
 /*
@@ -69,8 +69,8 @@ task copyInDbSchema(type: Copy,dependsOn:['clean','jar']) {
 }*/
 
 task copyInUserHome(type: Copy,dependsOn:['clean','jar']) {
-    from configurations.runtime.allArtifacts.files
-    from configurations.runtime
+    from configurations.runtimeClasspath.allArtifacts.files
+    from configurations.runtimeClasspath
     into "${System.getProperty('user.home')}/.DbSchema/drivers/InfluxDB/"
 }
 

@@ -1,5 +1,6 @@
 package com.wisecoders.dbschema.influxdb;
 
+import com.influxdb.exceptions.NotFoundException;
 import com.wisecoders.dbschema.influxdb.resultSet.ArrayResultSet;
 import com.influxdb.client.domain.Organization;
 import com.influxdb.query.FluxTable;
@@ -43,9 +44,11 @@ public class InfluxPreparedStatement implements PreparedStatement {
 
             ArrayResultSet result = new ArrayResultSet();
             result.setColumnNames(new String[]{"ORGANIZATIONS"});
-            for (Organization organization : connection.client.getOrganizationsApi().findOrganizations()) {
-                result.addRow(new String[]{String.valueOf(organization.getName())});
-            }
+            try {
+                for (Organization organization : connection.client.getOrganizationsApi().findOrganizations()) {
+                    result.addRow(new String[]{String.valueOf(organization.getName())});
+                }
+            } catch (NotFoundException ignore ){}
             return result;
         }
 

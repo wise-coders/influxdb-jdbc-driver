@@ -2,7 +2,6 @@ buildscript {
     repositories {
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
-        jcenter()
     }
     dependencies {
         classpath "gradle.plugin.install4j.install4j:gradle_plugin:7.0.8"
@@ -20,14 +19,14 @@ repositories {
 }
 
 dependencies {
-    implementation "com.influxdb:influxdb-client-java:4.1.0"
-    implementation "com.influxdb:influxdb-client-flux:4.1.0"
-    testImplementation 'junit:junit:4.12'
+    implementation 'com.influxdb:influxdb-client-java:6.7.0'
+    implementation 'com.influxdb:influxdb-client-flux:6.7.0'
+    testImplementation 'junit:junit:4.13.2'
 }
 
 compileJava{
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
+    sourceCompatibility = '10'
+    targetCompatibility = '10'
     doFirst {
         options.compilerArgs = [
                 '--module-path', classpath.asPath,
@@ -50,9 +49,10 @@ jar {
 
 
 task zip(type: Zip, dependsOn:['clean','jar']) {
-    archiveName 'InfluxDBJdbcDriver.zip'
+    archiveFileName.set 'InfluxDBJdbcDriver.zip'
     from configurations.runtimeClasspath.allArtifacts.files
     from configurations.runtimeClasspath
+    from "build/libs" include "*.jar"
 }
 
 task tar(type: Tar, dependsOn:['clean','jar']) {

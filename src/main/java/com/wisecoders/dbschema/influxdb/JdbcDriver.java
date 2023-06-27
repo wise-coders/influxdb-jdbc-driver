@@ -46,8 +46,7 @@ public class JdbcDriver implements Driver
 
     /**
      * Connect to the database using a URL like :
-     * jdbc:mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
-     * The URL excepting the jdbc: prefix is passed as it is to the MongoDb native Java driver.
+     * https://{HOST}:{PORT}?org={DB}&token={PARAM}&days={PARAM2}
      */
     @Override
     public Connection connect(String url, Properties info) throws SQLException {

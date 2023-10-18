@@ -55,11 +55,11 @@ public class JdbcDriver implements Driver
             int idx;
             if ( ( idx = url.lastIndexOf("?") ) > -1 ){
                 for ( String pair : url.substring( idx + 1 ).split("&")){
-                    String[] keyVal = pair.split("=");
-                    if ( keyVal.length == 2 ) {
-                        String key = keyVal[0];
-                        String val = URLDecoder.decode( keyVal[1], StandardCharsets.UTF_8 );
-                        if (!info.containsKey(keyVal[0])) {
+                    int idxEq = pair.indexOf("=") ;
+                    if ( idxEq > 1 ) {
+                        String key = pair.substring(0, idxEq);
+                        String val = URLDecoder.decode( pair.substring(idxEq+1), StandardCharsets.UTF_8 );
+                        if (!info.containsKey(key)) {
                             info.put(key, val);
                             LOGGER.log(Level.INFO, "Param " + key + "=" + val );
                         }

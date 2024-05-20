@@ -19,8 +19,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.influxdb:influxdb-client-java:7.0.0'
-    implementation 'com.influxdb:influxdb-client-flux:7.0.0'
+    implementation 'com.influxdb:influxdb-client-java:7.1.0'
+    implementation 'com.influxdb:influxdb-client-flux:7.1.0'
     testImplementation 'junit:junit:4.13.2'
 }
 

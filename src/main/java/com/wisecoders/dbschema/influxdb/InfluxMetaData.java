@@ -1,5 +1,6 @@
 package com.wisecoders.dbschema.influxdb;
 
+import com.influxdb.client.domain.Bucket;
 import com.wisecoders.dbschema.influxdb.resultSet.ArrayResultSet;
 import com.influxdb.client.QueryApi;
 import com.influxdb.client.domain.Organization;
@@ -28,9 +29,15 @@ public class InfluxMetaData implements DatabaseMetaData {
     public ResultSet getSchemas() {
         ArrayResultSet result = new ArrayResultSet();
         result.setColumnNames(new String[]{"TABLE_SCHEMA", "TABLE_CAT"});
-        for (FluxTable fluxTable : influxConnection.client.getQueryApi().query("buckets()")) {
-            for (FluxRecord fluxRecord : fluxTable.getRecords()) {
-                result.addRow(new String[]{String.valueOf(fluxRecord.getValueByKey("name")), null});
+        try {
+            for (Bucket bucket : influxConnection.client.getBucketsApi().findBuckets()) {
+                result.addRow(new String[]{String.valueOf(bucket.getName()), null});
+            }
+        } catch ( Throwable ex ) {
+            for (FluxTable fluxTable : influxConnection.client.getQueryApi().query("buckets()")) {
+                for (FluxRecord fluxRecord : fluxTable.getRecords()) {
+                    result.addRow(new String[]{String.valueOf(fluxRecord.getValueByKey("name")), null});
+                }
             }
         }
         return result;

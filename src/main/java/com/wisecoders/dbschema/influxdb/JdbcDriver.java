@@ -4,6 +4,7 @@ package com.wisecoders.dbschema.influxdb;
 import com.influxdb.client.InfluxDBClient;
 import com.influxdb.client.InfluxDBClientFactory;
 
+import java.io.File;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
@@ -11,10 +12,10 @@ import java.util.Properties;
 import java.util.logging.*;
 
 /**
- * Copyright Wise Coders GmbH https://wisecoders.com
- * Driver is used in the DbSchema Database Designer https://dbschema.com
+ * Copyright  <a href="https://wisecoders.com">Wise Coders GmbH</a>
+ * Driver is used in the  <a href="https://dbschema.com">DbSchema Database Designer</a>
  * Free to be used by everyone.
- * Code modifications allowed only to GitHub repository https://github.com/wise-coders/influxdb-jdbc-driver
+ * Code modifications allowed only to <a href="https://github.com/wise-coders/influxdb-jdbc-driver">GitHub repository</a>
  */
 
 public class JdbcDriver implements Driver
@@ -24,6 +25,11 @@ public class JdbcDriver implements Driver
 
     static {
         try {
+            final File logsFile = new File("~/.DbSchema/logs/");
+            if ( !logsFile.exists()) {
+                logsFile.mkdirs();
+            }
+
             DriverManager.registerDriver( new JdbcDriver());
             LOGGER.setLevel(Level.SEVERE);
             final ConsoleHandler consoleHandler = new ConsoleHandler();
@@ -76,7 +82,7 @@ public class JdbcDriver implements Driver
             LOGGER.log( Level.INFO, "Connection URL=" + url + " user=" + userName  + " password=" + password + " org=" + org +" token=" + token  + " days=" + startDaysStr );
 
             int startDays = -30;
-            if ( startDaysStr != null ) {
+            if ( startDaysStr != null && !startDaysStr.isEmpty()) {
                 try {
                     startDays = Integer.parseInt(startDaysStr);
                     if ( startDays > 0 ) startDays = -1* startDays;

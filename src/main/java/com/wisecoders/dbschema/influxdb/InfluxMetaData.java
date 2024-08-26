@@ -11,10 +11,10 @@ import java.sql.*;
 import java.util.List;
 
 /**
- * Copyright Wise Coders GmbH https://wisecoders.com
- * Driver is used in the DbSchema Database Designer https://dbschema.com
+ * Copyright  <a href="https://wisecoders.com">Wise Coders GmbH</a>
+ * Driver is used in the  <a href="https://dbschema.com">DbSchema Database Designer</a>
  * Free to be used by everyone.
- * Code modifications allowed only to GitHub repository https://github.com/wise-coders/influxdb-jdbc-driver
+ * Code modifications allowed only to <a href="https://github.com/wise-coders/influxdb-jdbc-driver">GitHub repository</a>
  */
 
 public class InfluxMetaData implements DatabaseMetaData {
